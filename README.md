@@ -2,8 +2,6 @@
 
 Infoscreen for **regiontog og regionekspress** mot Oslo S from Kråkstad and Ski. Real-time departures come from [Entur Journey Planner](https://developer.entur.no/docs/open-services/journey-planner).
 
-**Live:** [https://main.d1kdar5zuntzhw.amplifyapp.com](https://main.d1kdar5zuntzhw.amplifyapp.com)
-
 ## What it shows
 
 - Next Oslo-bound **R / RE** trains for about **24 hours** (local L-lines are hidden)
@@ -20,10 +18,10 @@ The board polls `/api/departures` every 30 seconds.
 
 Choices are stored in `localStorage` and mirrored in the query string, so a kiosk can open a fixed view:
 
-| Param | Values | Example |
-| --- | --- | --- |
-| `stasjon` | `begge`, `krakstad`, `ski` | `?stasjon=krakstad` |
-| `tema` | `auto`, `lys`, `mork` | `?stasjon=ski&tema=mork` |
+| Param     | Values                     | Example                  |
+| --------- | -------------------------- | ------------------------ |
+| `stasjon` | `begge`, `krakstad`, `ski` | `?stasjon=krakstad`      |
+| `tema`    | `auto`, `lys`, `mork`      | `?stasjon=ski&tema=mork` |
 
 ## Local development
 
@@ -45,12 +43,12 @@ ENTUR_CLIENT_NAME=yourorg-entur-stations
 
 The default in code is `aukoyy-entur-stations` if the env var is unset. Use the form `organization-application` (lowercase, no spaces).
 
-| Script | Purpose |
-| --- | --- |
-| `npm run dev` | Next.js dev server |
-| `npm run build` | Production build |
-| `npm start` | Serve the production build |
-| `npm run lint` | ESLint |
+| Script          | Purpose                    |
+| --------------- | -------------------------- |
+| `npm run dev`   | Next.js dev server         |
+| `npm run build` | Production build           |
+| `npm start`     | Serve the production build |
+| `npm run lint`  | ESLint                     |
 
 ## Stack
 
@@ -62,6 +60,12 @@ Departures are fetched server-side in `src/app/api/departures/route.ts` so the c
 
 ## Deploy
 
-The app is hosted on **AWS Amplify**, connected to `entur-stations` on `main`. Amplify builds with `npm run build` and serves the Next.js app.
+Hosted on **AWS Amplify**, connected to the `main` branch of this repo. Amplify builds with `npm run build` and serves the Next.js app.
 
 Set `ENTUR_CLIENT_NAME` in the Amplify environment if you do not want the in-code default.
+
+## How it was built
+
+This app was made in [Cursor](https://cursor.com) by prompting an AI coding agent, not from a written spec.
+
+It started as `create-next-app` (Next.js App Router and Tailwind). Behaviour was shaped in conversation, one change at a time: pull departures from Entur’s GraphQL API, keep only Oslo S–bound R/RE trains, drop local L-lines, show a 24-hour window, add station and theme toggles, and so on. The agent edited the TypeScript and React, probed Entur to check the query shape, and we reviewed the board in the browser after each round.
