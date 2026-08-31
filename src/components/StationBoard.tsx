@@ -1,11 +1,15 @@
 import type { StationBoardData } from "@/lib/entur";
+import { groupByOsloDay } from "@/lib/time";
 import { DepartureRow } from "./DepartureRow";
 
 type StationBoardProps = {
   station: StationBoardData;
+  now: Date;
 };
 
-export function StationBoard({ station }: StationBoardProps) {
+export function StationBoard({ station, now }: StationBoardProps) {
+  const sections = groupByOsloDay(station.departures, now);
+
   return (
     <section className="flex min-h-0 flex-1 flex-col">
       <h2 className="mb-1 text-2xl font-semibold tracking-tight text-zinc-50 sm:text-3xl lg:text-4xl">
@@ -36,14 +40,39 @@ export function StationBoard({ station }: StationBoardProps) {
 
       {station.departures.length === 0 ? (
         <p className="rounded-lg bg-zinc-900/70 px-4 py-6 text-lg text-zinc-400">
-          Ingen tog mot Oslo S de neste timene.
+          Ingen tog mot Oslo S det neste døgnet.
         </p>
       ) : (
-        <ul className="flex min-h-0 flex-col gap-2 overflow-y-auto">
-          {station.departures.map((departure) => (
-            <DepartureRow key={departure.id} departure={departure} />
+        <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
+          {sections.map((section) => (
+            <div key={section.key} className="flex flex-col gap-2">
+              {section.heading ? (
+                <h3 className="mt-1 flex items-center gap-3 pt-1">
+                  <span className="h-px min-w-4 flex-1 bg-zinc-700" aria-hidden />
+                  <span className="text-center">
+                    <span className="block text-sm font-semibold uppercase tracking-[0.18em] text-zinc-300 sm:text-base">
+                      {section.heading.title}
+                    </span>
+                    {section.heading.subtitle ? (
+                      <span className="mt-0.5 block text-xs text-zinc-500 sm:text-sm">
+                        {section.heading.subtitle}
+                      </span>
+                    ) : null}
+                  </span>
+                  <span className="h-px min-w-4 flex-1 bg-zinc-700" aria-hidden />
+                </h3>
+              ) : null}
+              <ul className="flex flex-col gap-2">
+                {section.items.map((departure) => (
+                  <DepartureRow
+                    key={`${departure.id}-${departure.aimedTime}`}
+                    departure={departure}
+                  />
+                ))}
+              </ul>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
     </section>
   );

@@ -106,7 +106,11 @@ export function Infoscreen() {
       {data ? (
         <div className="grid min-h-0 flex-1 grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-10">
           {data.stations.map((station) => (
-            <StationBoard key={station.id} station={station} />
+            <StationBoard
+              key={station.id}
+              station={station}
+              now={now ?? new Date(data.fetchedAt)}
+            />
           ))}
         </div>
       ) : state.status === "error" ? (

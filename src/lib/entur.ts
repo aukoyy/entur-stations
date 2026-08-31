@@ -1,19 +1,27 @@
 import { presentationForLine } from "./lines";
-import { DEPARTURES_PER_STATION, OSLO_S_STOP_PLACE_ID, STATION_IDS } from "./stations";
+import {
+  ENTUR_DEPARTURE_COUNT,
+  LOOKAHEAD_SECONDS,
+  OSLO_S_STOP_PLACE_ID,
+  pickStationDepartures,
+  STATION_IDS,
+  stationConfig,
+} from "./stations";
 
 const ENTUR_GRAPHQL_URL = "https://api.entur.io/journey-planner/v3/graphql";
 const DEFAULT_CLIENT_NAME = "aukoyy-entur-stations";
 
 const DEPARTURES_QUERY = `
-  query Departures($ids: [String!]!) {
+  query Departures($ids: [String!]!, $numberOfDepartures: Int!, $timeRange: Int!) {
     stopPlaces(ids: $ids) {
       id
       name
       estimatedCalls(
-        numberOfDepartures: 80
-        timeRange: 28800
+        numberOfDepartures: $numberOfDepartures
+        timeRange: $timeRange
         arrivalDeparture: departures
         includeCancelledTrips: true
+        whiteListedModes: [rail]
       ) {
         realtime
         cancellation
@@ -328,19 +336,26 @@ function mapDeparture(call: EnturEstimatedCall, stopId: string, index: number): 
   };
 }
 
-export function mapStopPlaces(stopPlaces: Array<EnturStopPlace | null> | null | undefined): StationBoardData[] {
+export function mapStopPlaces(
+  stopPlaces: Array<EnturStopPlace | null> | null | undefined,
+  now = new Date(),
+): StationBoardData[] {
   return (stopPlaces ?? [])
     .filter((stop): stop is EnturStopPlace => stop !== null)
-    .map((stop) => ({
-      id: stop.id,
-      name: stop.name,
-      departures: (stop.estimatedCalls ?? [])
+    .map((stop) => {
+      const mapped = (stop.estimatedCalls ?? [])
         .filter(isTrainOrReplacement)
         .map((call, index) => mapDeparture(call, stop.id, index))
-        .filter((departure): departure is Departure => departure !== null)
-        .slice(0, DEPARTURES_PER_STATION),
-      situations: uniqueSituations(stop.situations),
-    }));
+        .filter((departure): departure is Departure => departure !== null);
+      const config = stationConfig(stop.id);
+
+      return {
+        id: stop.id,
+        name: stop.name,
+        departures: config ? pickStationDepartures(mapped, config, now) : mapped.slice(0, 8),
+        situations: uniqueSituations(stop.situations),
+      };
+    });
 }
 
 export async function fetchDepartures(): Promise<DeparturesPayload> {
@@ -354,7 +369,11 @@ export async function fetchDepartures(): Promise<DeparturesPayload> {
     },
     body: JSON.stringify({
       query: DEPARTURES_QUERY,
-      variables: { ids: STATION_IDS },
+      variables: {
+        ids: STATION_IDS,
+        numberOfDepartures: ENTUR_DEPARTURE_COUNT,
+        timeRange: LOOKAHEAD_SECONDS,
+      },
     }),
     cache: "no-store",
   });
