@@ -7,7 +7,7 @@ type DepartureRowProps = {
 };
 
 function lineBadgeClass(departure: Departure): string {
-  if (departure.cancelled) return "bg-red-900/80 text-red-100";
+  if (departure.cancelled) return "bg-red-700 text-white dark:bg-red-900/80 dark:text-red-100";
   if (departure.isRailReplacement) return "bg-amber-500 text-zinc-950";
   return "";
 }
@@ -23,10 +23,10 @@ function lineBadgeStyle(departure: Departure): CSSProperties | undefined {
 export function DepartureRow({ departure }: DepartureRowProps) {
   const delayed = departure.delayMinutes >= 1 && !departure.cancelled;
   const timeClass = departure.cancelled
-    ? "text-red-300 line-through"
+    ? "text-red-700 line-through dark:text-red-300"
     : delayed
-      ? "text-yellow-300"
-      : "text-zinc-50";
+      ? "text-amber-700 dark:text-yellow-300"
+      : "text-foreground";
 
   const hasBadges = departure.cancelled || departure.isRailReplacement || delayed;
 
@@ -35,12 +35,12 @@ export function DepartureRow({ departure }: DepartureRowProps) {
       className={[
         "grid grid-cols-[auto_4.5rem_minmax(0,1fr)_auto] items-center gap-3 rounded-lg border-l-4 px-3 py-2.5 sm:gap-4 sm:px-4 sm:py-3",
         departure.cancelled
-          ? "border-red-600 bg-red-950/50 ring-1 ring-red-800/70"
+          ? "border-red-600 bg-red-50 ring-1 ring-red-200 dark:bg-red-950/40 dark:ring-red-800/60"
           : departure.isRailReplacement
-            ? "border-amber-400 bg-amber-950/50 ring-1 ring-amber-600/60"
+            ? "border-amber-400 bg-amber-50 ring-1 ring-amber-300 dark:bg-amber-950/40 dark:ring-amber-600/50"
             : delayed
-              ? "bg-yellow-950/30 ring-1 ring-yellow-700/40"
-              : "bg-zinc-900/80",
+              ? "bg-amber-50 ring-1 ring-amber-200 dark:bg-yellow-900/20 dark:ring-yellow-700/35"
+              : "bg-surface",
       ].join(" ")}
       style={
         departure.cancelled || departure.isRailReplacement
@@ -58,7 +58,7 @@ export function DepartureRow({ departure }: DepartureRowProps) {
       <div className="leading-tight">
         {delayed ? (
           <>
-            <time className="block text-sm text-zinc-500 line-through tabular-nums">
+            <time className="block text-sm text-subtle line-through tabular-nums">
               {formatDepartureTime(departure.aimedTime)}
             </time>
             <time className={`block text-xl font-semibold tabular-nums sm:text-2xl ${timeClass}`}>
@@ -75,7 +75,7 @@ export function DepartureRow({ departure }: DepartureRowProps) {
       <div className="min-w-0">
         <p
           className={`truncate text-lg font-medium sm:text-xl ${
-            departure.cancelled ? "text-red-200 line-through" : "text-zinc-50"
+            departure.cancelled ? "text-red-800 line-through dark:text-red-200" : "text-foreground"
           }`}
         >
           {departure.destination}
@@ -98,22 +98,22 @@ export function DepartureRow({ departure }: DepartureRowProps) {
           </div>
         ) : null}
         {departure.situations.map((situation) => (
-          <p key={situation.id} className="mt-1 truncate text-sm text-amber-200">
+          <p key={situation.id} className="mt-1 truncate text-sm text-amber-800 dark:text-amber-200">
             {situation.summary}
           </p>
         ))}
       </div>
 
-      <span className="text-right text-sm text-zinc-400 sm:text-base">
+      <span className="text-right text-sm text-muted sm:text-base">
         {departure.platform ? (
           <>
             <span className="block text-[0.7rem] uppercase tracking-wider">Spor</span>
-            <span className="text-lg font-semibold text-zinc-100 sm:text-xl">
+            <span className="text-lg font-semibold text-foreground sm:text-xl">
               {departure.platform}
             </span>
           </>
         ) : (
-          <span className="text-zinc-600">—</span>
+          <span className="text-subtle">—</span>
         )}
       </span>
     </li>

@@ -5,11 +5,12 @@ import {
   stationViewSlug,
   type StationView,
 } from "@/lib/stations";
+import { SegmentedToggle } from "./SegmentedToggle";
 
-const OPTIONS: Array<{ view: StationView; label: string }> = [
-  { view: STATIONS[0].id, label: STATIONS[0].shortName },
-  { view: "all", label: "Begge" },
-  { view: STATIONS[1].id, label: STATIONS[1].shortName },
+const OPTIONS: Array<{ value: StationView; label: string }> = [
+  { value: "all", label: "Begge" },
+  { value: STATIONS[0].id, label: STATIONS[0].shortName },
+  { value: STATIONS[1].id, label: STATIONS[1].shortName },
 ];
 
 type StationViewToggleProps = {
@@ -34,31 +35,11 @@ export function readStoredStationView(): StationView {
 
 export function StationViewToggle({ value, onChange }: StationViewToggleProps) {
   return (
-    <div
-      role="radiogroup"
-      aria-label="Velg stasjon"
-      className="inline-flex rounded-lg bg-zinc-900 p-1 ring-1 ring-zinc-800"
-    >
-      {OPTIONS.map((option) => {
-        const selected = option.view === value;
-        return (
-          <button
-            key={option.view}
-            type="button"
-            role="radio"
-            aria-checked={selected}
-            onClick={() => onChange(option.view)}
-            className={[
-              "rounded-md px-3 py-1.5 text-sm font-medium transition-colors sm:px-4 sm:text-base",
-              selected
-                ? "bg-zinc-100 text-zinc-950"
-                : "text-zinc-400 hover:text-zinc-100",
-            ].join(" ")}
-          >
-            {option.label}
-          </button>
-        );
-      })}
-    </div>
+    <SegmentedToggle
+      value={value}
+      options={OPTIONS}
+      ariaLabel="Velg stasjon"
+      onChange={onChange}
+    />
   );
 }
