@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Avgangstavle — Ski og Kråkstad mot Oslo S",
-  description: "Neste togavganger mot Oslo S fra Ski stasjon og Kråkstad stasjon",
+  title: "Avgangstavle — Kråkstad og Ski mot Oslo S",
+  description: "Neste togavganger mot Oslo S fra Kråkstad stasjon og Ski stasjon",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

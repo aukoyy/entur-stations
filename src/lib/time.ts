@@ -43,15 +43,6 @@ function formatLongOsloDate(ymd: string): string {
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
-export function osloHour(value: Date | string): number {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: OSLO,
-    hour: "numeric",
-    hourCycle: "h23",
-  }).formatToParts(typeof value === "string" ? new Date(value) : value);
-  return Number(parts.find((part) => part.type === "hour")?.value ?? 0);
-}
-
 const NIGHT_GAP_MS = 3 * 60 * 60 * 1000;
 
 export type DayHeading = {

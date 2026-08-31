@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import type { Departure } from "@/lib/entur";
-import { formatDepartureTime, formatDurationMinutes } from "@/lib/time";
+import { formatDepartureTime } from "@/lib/time";
 
 type DepartureRowProps = {
   departure: Departure;
@@ -33,7 +33,7 @@ export function DepartureRow({ departure }: DepartureRowProps) {
   return (
     <li
       className={[
-        "grid grid-cols-[auto_4.5rem_minmax(0,1fr)_auto_auto] items-center gap-3 rounded-lg border-l-4 px-3 py-2.5 sm:gap-4 sm:px-4 sm:py-3",
+        "grid grid-cols-[auto_4.5rem_minmax(0,1fr)_auto] items-center gap-3 rounded-lg border-l-4 px-3 py-2.5 sm:gap-4 sm:px-4 sm:py-3",
         departure.cancelled
           ? "border-red-600 bg-red-950/50 ring-1 ring-red-800/70"
           : departure.isRailReplacement
@@ -103,25 +103,6 @@ export function DepartureRow({ departure }: DepartureRowProps) {
           </p>
         ))}
       </div>
-
-      <span
-        className={`text-right leading-tight ${
-          departure.cancelled ? "text-red-300/80" : "text-zinc-300"
-        }`}
-      >
-        {departure.durationToOsloSMinutes != null ? (
-          <>
-            <span className="block text-[0.7rem] uppercase tracking-wider text-zinc-500">
-              Til Oslo S
-            </span>
-            <span className="text-lg font-semibold tabular-nums sm:text-xl">
-              {formatDurationMinutes(departure.durationToOsloSMinutes)}
-            </span>
-          </>
-        ) : (
-          <span className="text-zinc-600">—</span>
-        )}
-      </span>
 
       <span className="text-right text-sm text-zinc-400 sm:text-base">
         {departure.platform ? (

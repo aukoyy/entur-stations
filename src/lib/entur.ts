@@ -1,11 +1,10 @@
-import { presentationForLine } from "./lines";
+import { isLocalLine, presentationForLine } from "./lines";
 import {
   ENTUR_DEPARTURE_COUNT,
   LOOKAHEAD_SECONDS,
   OSLO_S_STOP_PLACE_ID,
   pickStationDepartures,
   STATION_IDS,
-  stationConfig,
 } from "./stations";
 
 const ENTUR_GRAPHQL_URL = "https://api.entur.io/journey-planner/v3/graphql";
@@ -302,6 +301,12 @@ function isTrainOrReplacement(call: EnturEstimatedCall): boolean {
   return line.transportSubmode === "railReplacementBus";
 }
 
+function isRegionalTrainOrReplacement(call: EnturEstimatedCall): boolean {
+  if (!isTrainOrReplacement(call)) return false;
+  const publicCode = call.serviceJourney?.line?.publicCode ?? "";
+  return !isLocalLine(publicCode);
+}
+
 function mapDeparture(call: EnturEstimatedCall, stopId: string, index: number): Departure | null {
   const aimedTime = call.aimedDepartureTime;
   if (!aimedTime) return null;
@@ -340,22 +345,25 @@ export function mapStopPlaces(
   stopPlaces: Array<EnturStopPlace | null> | null | undefined,
   now = new Date(),
 ): StationBoardData[] {
-  return (stopPlaces ?? [])
+  const boards = (stopPlaces ?? [])
     .filter((stop): stop is EnturStopPlace => stop !== null)
     .map((stop) => {
       const mapped = (stop.estimatedCalls ?? [])
-        .filter(isTrainOrReplacement)
+        .filter(isRegionalTrainOrReplacement)
         .map((call, index) => mapDeparture(call, stop.id, index))
         .filter((departure): departure is Departure => departure !== null);
-      const config = stationConfig(stop.id);
 
       return {
         id: stop.id,
         name: stop.name,
-        departures: config ? pickStationDepartures(mapped, config, now) : mapped.slice(0, 8),
+        departures: pickStationDepartures(mapped, now),
         situations: uniqueSituations(stop.situations),
       };
     });
+
+  return boards.sort(
+    (a, b) => STATION_IDS.indexOf(a.id) - STATION_IDS.indexOf(b.id),
+  );
 }
 
 export async function fetchDepartures(): Promise<DeparturesPayload> {

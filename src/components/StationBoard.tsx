@@ -1,5 +1,6 @@
 import type { StationBoardData } from "@/lib/entur";
-import { groupByOsloDay } from "@/lib/time";
+import { stationConfig } from "@/lib/stations";
+import { formatDurationMinutes, groupByOsloDay } from "@/lib/time";
 import { DepartureRow } from "./DepartureRow";
 
 type StationBoardProps = {
@@ -9,15 +10,29 @@ type StationBoardProps = {
 
 export function StationBoard({ station, now }: StationBoardProps) {
   const sections = groupByOsloDay(station.departures, now);
+  const minutesToOsloS = stationConfig(station.id)?.minutesToOsloS;
 
   return (
     <section className="flex min-h-0 flex-1 flex-col">
-      <h2 className="mb-1 text-2xl font-semibold tracking-tight text-zinc-50 sm:text-3xl lg:text-4xl">
-        {station.name}
-      </h2>
-      <p className="mb-3 text-sm font-medium uppercase tracking-[0.18em] text-zinc-500 sm:text-base">
-        Mot Oslo S
-      </p>
+      <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <h2 className="text-2xl font-semibold tracking-tight text-zinc-50 sm:text-3xl lg:text-4xl">
+          {station.name}
+        </h2>
+        {minutesToOsloS != null ? (
+          <p className="flex items-baseline gap-2 text-zinc-400">
+            <span className="text-xl font-semibold tabular-nums text-zinc-200 sm:text-2xl lg:text-3xl">
+              {formatDurationMinutes(minutesToOsloS)}
+            </span>
+            <span className="text-sm font-medium uppercase tracking-[0.18em] text-zinc-500">
+              til Oslo S
+            </span>
+          </p>
+        ) : (
+          <p className="text-sm font-medium uppercase tracking-[0.18em] text-zinc-500 sm:text-base">
+            Mot Oslo S
+          </p>
+        )}
+      </div>
 
       {station.situations.length > 0 ? (
         <div className="mb-3 space-y-2">

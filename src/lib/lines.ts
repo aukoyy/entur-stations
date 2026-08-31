@@ -7,7 +7,6 @@ export const LINE_COLOURS = {
 } as const;
 
 export const LINE_LEGEND = [
-  { label: "Lokaltog", colour: LINE_COLOURS.local },
   { label: "Regiontog", colour: LINE_COLOURS.regional },
   { label: "Regionekspress", colour: LINE_COLOURS.regionalExpress },
 ] as const;
@@ -16,6 +15,11 @@ export type LinePresentation = {
   colour: string;
   textColour: string;
 };
+
+export function isLocalLine(publicCode: string): boolean {
+  const code = publicCode.trim().toUpperCase();
+  return code.startsWith("L") && !code.startsWith("RE");
+}
 
 function toCssColor(hex: string | null | undefined): string | null {
   if (!hex) return null;
