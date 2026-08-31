@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Avgangstavle — Kråkstad og Ski mot Oslo S
 
-## Getting Started
+Infoscreen for **regiontog og regionekspress** mot Oslo S from Kråkstad and Ski. Real-time departures come from [Entur Journey Planner](https://developer.entur.no/docs/open-services/journey-planner).
 
-First, run the development server:
+**Live:** [https://main.d1kdar5zuntzhw.amplifyapp.com](https://main.d1kdar5zuntzhw.amplifyapp.com)
+
+## What it shows
+
+- Next Oslo-bound **R / RE** trains for about **24 hours** (local L-lines are hidden)
+- Typical travel time next to the station name: **20 min** from Kråkstad, **12 min** from Ski
+- Line colours from Entur (regiontog red, regionekspress cyan)
+- Delays, cancellations, rail-replacement buses, and Entur situation messages
+- Day break (**I morgen**) and a **Morgen** heading after the overnight gap
+- Station picker: Begge, Kråkstad, or Ski (one station fills the width)
+- Theme: Auto (OS light/dark), Lys, or Mørk
+
+The board polls `/api/departures` every 30 seconds.
+
+## URL presets
+
+Choices are stored in `localStorage` and mirrored in the query string, so a kiosk can open a fixed view:
+
+| Param | Values | Example |
+| --- | --- | --- |
+| `stasjon` | `begge`, `krakstad`, `ski` | `?stasjon=krakstad` |
+| `tema` | `auto`, `lys`, `mork` | `?stasjon=ski&tema=mork` |
+
+## Local development
+
+Requires Node.js 20+.
 
 ```bash
+cp .env.example .env.local
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Entur requires an `ET-Client-Name` header. Set it in `.env.local`:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+ENTUR_CLIENT_NAME=yourorg-entur-stations
+```
 
-## Learn More
+The default in code is `aukoyy-entur-stations` if the env var is unset. Use the form `organization-application` (lowercase, no spaces).
 
-To learn more about Next.js, take a look at the following resources:
+| Script | Purpose |
+| --- | --- |
+| `npm run dev` | Next.js dev server |
+| `npm run build` | Production build |
+| `npm start` | Serve the production build |
+| `npm run lint` | ESLint |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Stack
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- [Next.js](https://nextjs.org) 16 (App Router) and React 19
+- Tailwind CSS 4
+- Entur Journey Planner GraphQL (`https://api.entur.io/journey-planner/v3/graphql`)
 
-## Deploy on Vercel
+Departures are fetched server-side in `src/app/api/departures/route.ts` so the client name stays off the browser.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Deploy
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The app is hosted on **AWS Amplify**, connected to `entur-stations` on `main`. Amplify builds with `npm run build` and serves the Next.js app.
+
+Set `ENTUR_CLIENT_NAME` in the Amplify environment if you do not want the in-code default.
