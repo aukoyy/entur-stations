@@ -1,5 +1,11 @@
 import { Infoscreen } from "@/components/Infoscreen";
+import { LegacyBrowserNotice } from "@/components/LegacyBrowserNotice";
 
 export default function Home() {
-  return <Infoscreen />;
+  return (
+    <>
+      <LegacyBrowserNotice />
+      <Infoscreen />
+    </>
+  );
 }
