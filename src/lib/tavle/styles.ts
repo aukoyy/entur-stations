@@ -150,7 +150,12 @@ body {
 .avvik .summary { margin: 2px 0 0; font-size: 17px; font-weight: 500; }
 .avvik .description { margin: 4px 0 0; font-size: 14px; opacity: 0.8; }
 
-.list { -webkit-flex: 1 1 auto; flex: 1 1 auto; min-height: 0; overflow: hidden; }
+.list {
+  -webkit-flex: 1 1 auto; flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
 
 .day {
   display: -webkit-flex; display: flex;

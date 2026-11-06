@@ -29,7 +29,8 @@ The main app needs Safari 16.4+ (Next.js 16, React 19, Tailwind 4), so on older 
 
 - Plain server-rendered HTML with hand-written CSS and a small ES5 script, without React, Tailwind or Next.js client JavaScript
 - Polls `/tavle?…&format=json` every 30 seconds and swaps in the new board; if a poll fails, the last board stays on screen
-- Reloads the full page every 6 hours (only right after a successful poll) to pick up new deploys
+- Each station's list scrolls on its own and keeps its position across polls
+- Reloads the full page every 6 hours (only right after a successful poll) to pick up new deploys; this also scrolls the lists back to the top
 - Same `stasjon` and `tema` params as above; small links in the footer switch between them
 - `tema=auto` is time-based here, since iOS 12 has no dark mode: dark from 21:00 to 06:00 Oslo time
 

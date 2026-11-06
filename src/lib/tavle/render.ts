@@ -26,9 +26,6 @@ const STATION_QUERY_PARAM = "stasjon";
 const DARK_FROM_HOUR = 21;
 const DARK_UNTIL_HOUR = 6;
 
-/** The iPad cannot scroll the board anyway; this keeps the payload small. */
-const MAX_DEPARTURES_PER_STATION = 30;
-
 const FULL_RELOAD_MS = 6 * 60 * 60 * 1000;
 
 export type TavleOptions = {
@@ -135,7 +132,7 @@ function renderStation(station: StationBoardData, now: Date): string {
       ? `<p class="trip"><strong>${formatDurationMinutes(minutesToOsloS)}</strong><span>til Oslo S</span></p>`
       : '<p class="trip"><span>Mot Oslo S</span></p>';
 
-  const departures = station.departures.slice(0, MAX_DEPARTURES_PER_STATION);
+  const departures = station.departures;
   const list =
     departures.length === 0
       ? '<p class="empty">Ingen tog mot Oslo S det neste døgnet.</p>'
