@@ -23,6 +23,20 @@ Choices are stored in `localStorage` and mirrored in the query string, so a kios
 | `stasjon` | `begge`, `krakstad`, `ski` | `?stasjon=krakstad`      |
 | `tema`    | `auto`, `lys`, `mork`      | `?stasjon=ski&tema=mork` |
 
+## Old iPads: `/tavle`
+
+The main app needs Safari 16.4+ (Next.js 16, React 19, Tailwind 4), so on older iOS (e.g. an iPad stuck on iOS 12) it never loads departures. `/tavle` is a separate, lightweight version of the board for those devices:
+
+- Plain server-rendered HTML with hand-written CSS and a small ES5 script, without React, Tailwind or Next.js client JavaScript
+- Polls `/tavle?…&format=json` every 30 seconds and swaps in the new board; if a poll fails, the last board stays on screen
+- Reloads the full page every 6 hours (only right after a successful poll) to pick up new deploys
+- Same `stasjon` and `tema` params as above; small links in the footer switch between them
+- `tema=auto` is time-based here, since iOS 12 has no dark mode: dark from 21:00 to 06:00 Oslo time
+
+Example: `/tavle?stasjon=begge&tema=auto`. On the iPad, use **Share → Add to Home Screen** to run it full-screen without the browser bar.
+
+Code lives in `src/app/tavle/route.ts` and `src/lib/tavle/`.
+
 ## Local development
 
 Requires Node.js 20+.
