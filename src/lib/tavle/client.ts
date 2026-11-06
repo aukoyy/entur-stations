@@ -6,10 +6,12 @@
  * - Polls the JSON variant of the page and swaps in new markup. On failure it
  *   keeps the last board on screen, so a Wi-Fi blip never leaves a browser
  *   error page behind (which a plain meta refresh would).
- * - Keeps each station list's scroll position across polls.
+ * - Keeps each station list's scroll position across polls (landscape, where
+ *   lists scroll on their own; in portrait the page scrolls and the swap
+ *   leaves the page position alone).
  * - Reloads the whole page every few hours, but only right after a successful
- *   poll, to pick up new deploys. The reload also scrolls every list back to
- *   the top, so a board someone scrolled down doesn't stay that way.
+ *   poll, to pick up new deploys. The reload also scrolls back to the top, so
+ *   a board someone scrolled down doesn't stay that way.
  */
 export const TAVLE_CLIENT_SCRIPT = `
 (function () {

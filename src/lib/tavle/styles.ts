@@ -59,11 +59,16 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/*
+ * Portrait / narrow (default): stations stack and the whole page scrolls,
+ * like the main app. Landscape / wide (min-width: 900px, further down): the
+ * page fits the screen and each station list scrolls on its own.
+ */
 .page {
   display: -webkit-box; display: -webkit-flex; display: flex;
   -webkit-flex-direction: column; flex-direction: column;
-  height: 100%;
-  padding: 16px 20px 10px;
+  min-height: 100%;
+  padding: 16px 20px 0;
 }
 
 .top {
@@ -103,24 +108,29 @@ body {
 .boards {
   display: -webkit-flex; display: flex;
   -webkit-flex-direction: column; flex-direction: column;
-  -webkit-flex: 1 1 auto; flex: 1 1 auto;
-  min-height: 0;
+  -webkit-flex: 1 0 auto; flex: 1 0 auto;
 }
 
 .board {
   display: -webkit-flex; display: flex;
   -webkit-flex-direction: column; flex-direction: column;
-  -webkit-flex: 1 1 0%; flex: 1 1 0%;
-  min-height: 0;
   min-width: 0;
-  overflow: hidden;
 }
 
-.boards-two .board + .board { margin-top: 20px; }
+.boards-two .board + .board { margin-top: 28px; }
 
 @media (min-width: 900px) {
+  .page { height: 100%; }
+  .boards { -webkit-flex: 1 1 auto; flex: 1 1 auto; min-height: 0; }
   .boards-two { -webkit-flex-direction: row; flex-direction: row; }
   .boards-two .board + .board { margin-top: 0; margin-left: 32px; }
+  .board { -webkit-flex: 1 1 0%; flex: 1 1 0%; min-height: 0; overflow: hidden; }
+  .list {
+    -webkit-flex: 1 1 auto; flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 .board-head {
@@ -149,13 +159,6 @@ body {
 .avvik .label { margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--avvik-label); }
 .avvik .summary { margin: 2px 0 0; font-size: 17px; font-weight: 500; }
 .avvik .description { margin: 4px 0 0; font-size: 14px; opacity: 0.8; }
-
-.list {
-  -webkit-flex: 1 1 auto; flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-}
 
 .day {
   display: -webkit-flex; display: flex;
@@ -222,11 +225,15 @@ body {
 .empty { background: var(--surface); color: var(--muted); }
 .error-box { background: var(--danger-bg); color: var(--danger); }
 
+/* Sticky so the station/theme links stay in reach when the page scrolls in portrait. */
 .bottom {
+  position: -webkit-sticky; position: sticky;
+  bottom: 0;
   -webkit-flex-shrink: 0; flex-shrink: 0;
   margin-top: 10px;
-  padding-top: 8px;
+  padding: 8px 0 10px;
   border-top: 1px solid var(--line);
+  background: var(--background);
   font-size: 14px;
 }
 .bottom .group { display: inline-block; margin-right: 24px; }
