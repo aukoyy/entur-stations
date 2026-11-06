@@ -10,6 +10,13 @@ export function formatClock(date: Date, withSeconds = false): string {
   }).format(date);
 }
 
+/** Hour of day (0–23) in Oslo. */
+export function osloHour(date: Date): number {
+  return Number(
+    new Intl.DateTimeFormat("en-GB", { timeZone: OSLO, hour: "2-digit", hourCycle: "h23" }).format(date),
+  );
+}
+
 export function formatDepartureTime(iso: string): string {
   return formatClock(new Date(iso));
 }
