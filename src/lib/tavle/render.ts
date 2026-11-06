@@ -6,6 +6,7 @@ import {
   emptyBoardText,
   osloTripLabel,
   parseDirection,
+  routeLabel,
   stationHeading,
   type Direction,
 } from "@/lib/direction";
@@ -223,12 +224,17 @@ function renderFooter(options: TavleOptions): string {
     { theme: "dark", label: "Mørk" },
   ];
 
-  const link = (href: string, label: string, active: boolean) =>
-    `<a href="${escapeHtml(href)}"${active ? ' class="active"' : ""}>${escapeHtml(label)}</a>`;
+  const link = (href: string, label: string, active: boolean, activeClass = "active") =>
+    `<a href="${escapeHtml(href)}"${active ? ` class="${activeClass}"` : ""}>${escapeHtml(label)}</a>`;
 
   return `<nav class="bottom">
 <span class="group">${DIRECTIONS.map((direction) =>
-    link(tavleHref({ ...options, direction }), DIRECTION_LABELS[direction], direction === options.direction),
+    link(
+      tavleHref({ ...options, direction }),
+      DIRECTION_LABELS[direction],
+      direction === options.direction,
+      direction === "south" ? "active south" : "active",
+    ),
   ).join("")}</span>
 <span class="group">${stationLinks
     .map((item) => link(tavleHref({ ...options, view: item.view }), item.label, item.view === options.view))
@@ -291,11 +297,12 @@ export function renderTavlePage({
 <style>${TAVLE_CSS}</style>
 </head>
 <body>
-<div class="page">
+<div class="page${options.direction === "south" ? " dir-south" : ""}">
 <header class="top">
 <div>
-<p class="eyebrow">Avgangstavle</p>
-<span class="clock" id="clock">${formatClock(now)}</span>
+<div class="headline"><span class="clock" id="clock">${formatClock(now)}</span><span class="route">→ ${escapeHtml(
+    routeLabel(options.direction, options.view),
+  )}</span></div>
 <ul class="legend">${legend}</ul>
 </div>
 <div class="status" id="status">${status}</div>

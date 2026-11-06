@@ -13,8 +13,9 @@ import {
 } from "./StationViewToggle";
 import { persistTheme, readStoredTheme, ThemeToggle } from "./ThemeToggle";
 import { applyTheme, type ThemePreference } from "@/lib/theme";
-import type { Direction } from "@/lib/direction";
-import { DirectionToggle, persistDirection, readStoredDirection } from "./DirectionToggle";
+import { routeLabel } from "@/lib/direction";
+import { DirectionToggle } from "./DirectionToggle";
+import { useDirection } from "./useDirection";
 
 type LoadState =
   | { status: "loading" }
@@ -25,7 +26,7 @@ export function Infoscreen() {
   const [now, setNow] = useState<Date | null>(null);
   const [state, setState] = useState<LoadState>({ status: "loading" });
   const [view, setView] = useState<StationView>("all");
-  const [direction, setDirection] = useState<Direction>("north");
+  const { direction, source: directionSource, selectDirection } = useDirection();
   const [theme, setTheme] = useState<ThemePreference>("auto");
 
   const load = useCallback(async () => {
@@ -48,7 +49,6 @@ export function Infoscreen() {
 
   useEffect(() => {
     setView(readStoredStationView());
-    setDirection(readStoredDirection());
     const storedTheme = readStoredTheme();
     setTheme(storedTheme);
     applyTheme(storedTheme);
@@ -57,11 +57,6 @@ export function Infoscreen() {
   const selectView = useCallback((next: StationView) => {
     setView(next);
     persistStationView(next);
-  }, []);
-
-  const selectDirection = useCallback((next: Direction) => {
-    setDirection(next);
-    persistDirection(next);
   }, []);
 
   const selectTheme = useCallback((next: ThemePreference) => {
@@ -110,17 +105,29 @@ export function Infoscreen() {
   const visibleConfigs =
     view === "all" ? STATIONS : STATIONS.filter((station) => station.id === view);
   const multiColumn = (visibleStations?.length ?? visibleConfigs.length) !== 1;
+  const south = direction === "south";
 
   return (
-    <div className="flex min-h-full flex-1 flex-col bg-background px-4 py-4 text-foreground sm:px-6 sm:py-5 lg:px-8">
+    <div
+      className={[
+        "flex min-h-full flex-1 flex-col border-t-8 bg-background px-4 py-4 text-foreground sm:px-6 sm:py-5 lg:px-8",
+        // The coloured band at the top is the quickest tell that you're looking south.
+        south ? "border-south" : "border-transparent",
+      ].join(" ")}
+    >
       <header className="mb-4 flex items-end justify-between gap-4 sm:mb-6">
         <div>
-          <p className="text-sm font-medium uppercase tracking-[0.2em] text-muted">
-            Avgangstavle
-          </p>
-          <time className="block font-semibold tabular-nums text-4xl sm:text-5xl lg:text-6xl">
-            {now ? formatClock(now) : "--:--"}
-          </time>
+          <div className="flex flex-wrap items-baseline gap-x-4 text-4xl font-semibold sm:gap-x-6 sm:text-5xl lg:text-6xl">
+            <time className="tabular-nums">{now ? formatClock(now) : "--:--"}</time>
+            <p className={south ? "text-south" : undefined}>
+              <span aria-hidden>→ </span>
+              <span className="sr-only">Mot </span>
+              {routeLabel(direction, view)}
+            </p>
+          </div>
+          {directionSource === "location" ? (
+            <p className="mt-1 text-xs text-subtle sm:text-sm">Retning valgt ut fra hvor du er</p>
+          ) : null}
           <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs font-medium text-muted sm:text-sm">
             {LINE_LEGEND.map((item) => (
               <li key={item.label} className="inline-flex items-center gap-1.5">

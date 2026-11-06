@@ -6,6 +6,8 @@ Infoscreen for **regiontog og regionekspress** between Kråkstad/Ski and Oslo S,
 
 - Next **R / RE** trains for about **24 hours** (local L-lines are hidden)
 - Direction: **Nord** (default), from Kråkstad/Ski to Oslo S, headed *Fra Kråkstad* / *Fra Ski*; or **Sør**, from Oslo S to Kråkstad/Ski, headed *Til Kråkstad* / *Til Ski*. Going south, each row shows the departure time and platform at Oslo S plus the arrival time at the station
+- The destination is shown big next to the clock (*→ Oslo S* / *→ Kråkstad / Ski*), and south gets its own violet accent: a band across the top, the destination, the headings and the Sør toggle
+- The direction is picked from your location: closer to Oslo S than to Kråkstad/Ski means Sør, otherwise Nord. The position is only used in the browser. Tapping the toggle overrides it until the app has been in the background for 30 minutes; without location access it's Nord
 - Typical travel time next to the heading (*til* / *fra Oslo S*): **20 min** for Kråkstad, **12 min** for Ski
 - Line colours from Entur (regiontog red, regionekspress cyan)
 - Delays, cancellations, rail-replacement buses, and Entur situation messages
@@ -17,7 +19,7 @@ The board polls `/api/departures` every 30 seconds.
 
 ## URL presets
 
-Choices are stored in `localStorage` and mirrored in the query string, so a kiosk can open a fixed view:
+Station and theme are stored in `localStorage` and mirrored in the query string, so a kiosk can open a fixed view. Direction is never stored (so the app doesn't open on a direction left over from last time); `retning` in the URL pins it and skips the location lookup:
 
 | Param     | Values                     | Example                  |
 | --------- | -------------------------- | ------------------------ |
@@ -34,7 +36,7 @@ The main app needs Safari 16.4+ (Next.js 16, React 19, Tailwind 4), so on older 
 - Portrait: stations stack and the whole page scrolls, with the footer links pinned to the bottom. Landscape: stations side by side, each list scrolls on its own
 - Scroll position is kept across polls
 - Reloads the full page every 6 hours (only right after a successful poll) to pick up new deploys; this also scrolls back to the top
-- Same `retning`, `stasjon` and `tema` params as above; small links in the footer switch between them
+- Same `retning`, `stasjon` and `tema` params as above; small links in the footer switch between them. No location lookup here: without `retning` it's Nord
 - `tema=auto` is time-based here, since iOS 12 has no dark mode: dark from 21:00 to 06:00 Oslo time
 
 Example: `/tavle?stasjon=begge&tema=auto`. On the iPad, use **Share → Add to Home Screen** to run it full-screen without the browser bar.

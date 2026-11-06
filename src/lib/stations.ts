@@ -5,7 +5,10 @@ export type StationConfig = {
   slug: string;
   /** Typical travel time between the station and Oslo S (same both ways). */
   minutesToOsloS: number;
+  position: GeoPosition;
 };
+
+export type GeoPosition = { latitude: number; longitude: number };
 
 export const STATIONS: StationConfig[] = [
   {
@@ -14,6 +17,7 @@ export const STATIONS: StationConfig[] = [
     shortName: "Kråkstad",
     slug: "krakstad",
     minutesToOsloS: 20,
+    position: { latitude: 59.683362, longitude: 10.890785 },
   },
   {
     id: "NSR:StopPlace:60944",
@@ -21,12 +25,14 @@ export const STATIONS: StationConfig[] = [
     shortName: "Ski",
     slug: "ski",
     minutesToOsloS: 12,
+    position: { latitude: 59.718294, longitude: 10.833673 },
   },
 ];
 
 export const STATION_IDS = STATIONS.map((station) => station.id);
 
 export const OSLO_S_STOP_PLACE_ID = "NSR:StopPlace:59872";
+export const OSLO_S_POSITION: GeoPosition = { latitude: 59.910357, longitude: 10.753051 };
 
 export const ENTUR_DEPARTURE_COUNT = 250;
 export const LOOKAHEAD_SECONDS = 86_400;

@@ -1,6 +1,8 @@
 type SegmentedOption<T extends string> = {
   value: T;
   label: string;
+  /** Overrides the default selected colours for this option. */
+  activeClassName?: string;
 };
 
 type SegmentedToggleProps<T extends string> = {
@@ -34,7 +36,7 @@ export function SegmentedToggle<T extends string>({
             className={[
               "rounded-md px-3 py-1.5 text-sm font-medium transition-colors sm:px-4 sm:text-base",
               selected
-                ? "bg-toggle-active text-toggle-active-fg"
+                ? (option.activeClassName ?? "bg-toggle-active text-toggle-active-fg")
                 : "text-muted hover:text-foreground",
             ].join(" ")}
           >

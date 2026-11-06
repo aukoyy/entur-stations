@@ -1,3 +1,5 @@
+import { OSLO_S_POSITION, STATIONS, type GeoPosition, type StationView } from "./stations";
+
 /**
  * Travel direction. North: from Kråkstad/Ski to Oslo S (the default).
  * South: from Oslo S to Kråkstad/Ski.
@@ -6,7 +8,6 @@ export type Direction = "north" | "south";
 
 export const DIRECTIONS: Direction[] = ["north", "south"];
 export const DIRECTION_QUERY_PARAM = "retning";
-export const DIRECTION_STORAGE_KEY = "entur-stations-direction";
 
 export const DIRECTION_LABELS: Record<Direction, string> = {
   north: "Nord",
@@ -20,6 +21,31 @@ export function parseDirection(value: string | null | undefined): Direction {
 
 export function directionSlug(direction: Direction): string {
   return direction === "south" ? "sor" : "nord";
+}
+
+/** Where the trains on screen are going, shown big next to the clock: "Oslo S" / "Kråkstad / Ski". */
+export function routeLabel(direction: Direction, view: StationView): string {
+  if (direction === "north") return "Oslo S";
+  const stations = view === "all" ? STATIONS : STATIONS.filter((station) => station.id === view);
+  return stations.map((station) => station.shortName).join(" / ");
+}
+
+/** Distance in km. An equirectangular approximation is plenty at this scale. */
+function distanceKm(a: GeoPosition, b: GeoPosition): number {
+  const toRadians = Math.PI / 180;
+  const x = (b.longitude - a.longitude) * toRadians * Math.cos(((a.latitude + b.latitude) / 2) * toRadians);
+  const y = (b.latitude - a.latitude) * toRadians;
+  return Math.sqrt(x * x + y * y) * 6371;
+}
+
+/**
+ * Closer to Oslo S than to Kråkstad/Ski means you're heading home (south);
+ * otherwise you're heading to Oslo (north).
+ */
+export function directionForPosition(position: GeoPosition): Direction {
+  const toOslo = distanceKm(position, OSLO_S_POSITION);
+  const toHome = Math.min(...STATIONS.map((station) => distanceKm(position, station.position)));
+  return toOslo < toHome ? "south" : "north";
 }
 
 /** "Fra Kråkstad" (north) / "Til Kråkstad" (south). */

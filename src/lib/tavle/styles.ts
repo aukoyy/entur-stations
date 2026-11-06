@@ -13,6 +13,8 @@ export const TAVLE_CSS = `
   --line: #cfd3db;
   --toggle-active: #1e232b;
   --toggle-active-fg: #f3f4f7;
+  --south: #6d28d9;
+  --south-fg: #ffffff;
   --danger: #b91c1c;
   --danger-bg: #fef2f2;
   --danger-ring: #fecaca;
@@ -34,6 +36,8 @@ export const TAVLE_CSS = `
   --line: #4c515a;
   --toggle-active: #ece9e4;
   --toggle-active-fg: #2c2f36;
+  --south: #a78bfa;
+  --south-fg: #1e1638;
   --danger: #fca5a5;
   --danger-bg: rgba(69, 10, 10, 0.45);
   --danger-ring: rgba(153, 27, 27, 0.6);
@@ -79,22 +83,16 @@ body {
   margin-bottom: 16px;
 }
 
-.eyebrow {
-  margin: 0;
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
+/* Clock and destination share one big line: "22:41  → Oslo S". */
+.headline { font-size: 56px; font-weight: 600; line-height: 1.05; }
+.clock { display: inline-block; margin-right: 24px; font-variant-numeric: tabular-nums; }
+.route { display: inline-block; }
 
-.clock {
-  display: block;
-  font-size: 56px;
-  font-weight: 600;
-  line-height: 1.05;
-  font-variant-numeric: tabular-nums;
-}
+/* South (from Oslo S): coloured band on top, coloured destination and headings. */
+.page { border-top: 8px solid transparent; }
+.dir-south { border-top-color: var(--south); }
+.dir-south .route,
+.dir-south .board-head h2 { color: var(--south); }
 
 .legend { list-style: none; margin: 8px 0 0; padding: 0; font-size: 13px; font-weight: 500; color: var(--muted); }
 .legend li { display: inline-block; margin-right: 16px; }
@@ -246,4 +244,5 @@ body {
   text-decoration: none;
 }
 .bottom a.active { background: var(--toggle-active); color: var(--toggle-active-fg); }
+.bottom a.active.south { background: var(--south); color: var(--south-fg); }
 `;
