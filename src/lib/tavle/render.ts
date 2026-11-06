@@ -1,3 +1,14 @@
+import {
+  DIRECTION_LABELS,
+  DIRECTION_QUERY_PARAM,
+  DIRECTIONS,
+  directionSlug,
+  emptyBoardText,
+  osloTripLabel,
+  parseDirection,
+  stationHeading,
+  type Direction,
+} from "@/lib/direction";
 import type { Departure, DeparturesPayload, Situation, StationBoardData } from "@/lib/entur";
 import { LINE_LEGEND } from "@/lib/lines";
 import {
@@ -31,6 +42,7 @@ const FULL_RELOAD_MS = 6 * 60 * 60 * 1000;
 export type TavleOptions = {
   view: StationView;
   theme: ThemePreference;
+  direction: Direction;
 };
 
 export type TavleParts = {
@@ -44,6 +56,7 @@ export function parseTavleOptions(params: URLSearchParams): TavleOptions {
   return {
     view: parseStationView(params.get(STATION_QUERY_PARAM)),
     theme: parseThemePreference(params.get(THEME_QUERY_PARAM)),
+    direction: parseDirection(params.get(DIRECTION_QUERY_PARAM)),
   };
 }
 
@@ -62,11 +75,11 @@ function escapeHtml(value: string): string {
     .replace(/'/g, "&#39;");
 }
 
-function tavleHref(view: StationView, theme: ThemePreference, extra = ""): string {
-  return `${TAVLE_PATH}?${STATION_QUERY_PARAM}=${stationViewSlug(view)}&${THEME_QUERY_PARAM}=${themeSlug(theme)}${extra}`;
+function tavleHref(options: TavleOptions, extra = ""): string {
+  return `${TAVLE_PATH}?${DIRECTION_QUERY_PARAM}=${directionSlug(options.direction)}&${STATION_QUERY_PARAM}=${stationViewSlug(options.view)}&${THEME_QUERY_PARAM}=${themeSlug(options.theme)}${extra}`;
 }
 
-function renderDeparture(departure: Departure): string {
+function renderDeparture(departure: Departure, showArrival: boolean): string {
   const delayed = departure.delayMinutes >= 1 && !departure.cancelled;
   const rowClass = departure.cancelled
     ? "dep is-cancelled"
@@ -101,6 +114,11 @@ function renderDeparture(departure: Departure): string {
     delayed ? `<span class="tag delayed">Forsinket +${departure.delayMinutes} min</span>` : "",
   ].join("");
 
+  const arrival =
+    showArrival && departure.arrivalTime
+      ? `<p class="arrival">Ankomst ${formatDepartureTime(departure.arrivalTime)}</p>`
+      : "";
+
   const notes = departure.situations
     .map((situation) => `<p class="note">${escapeHtml(situation.summary)}</p>`)
     .join("");
@@ -112,7 +130,7 @@ function renderDeparture(departure: Departure): string {
   return `<li class="${rowClass}"${rowStyle}>
 <span class="${badgeClass}"${badgeStyle}>${escapeHtml(departure.line)}</span>
 <div class="time">${time}</div>
-<div class="info"><p class="dest${departure.cancelled ? " cancelled" : ""}">${escapeHtml(departure.destination)}</p>${
+<div class="info"><p class="dest${departure.cancelled ? " cancelled" : ""}">${escapeHtml(departure.destination)}</p>${arrival}${
     tags ? `<div class="tags">${tags}</div>` : ""
   }${notes}</div>
 <span class="platform">${platform}</span>
@@ -125,17 +143,21 @@ function renderSituation(situation: Situation): string {
   }</aside>`;
 }
 
-function renderStation(station: StationBoardData, now: Date): string {
-  const minutesToOsloS = stationConfig(station.id)?.minutesToOsloS;
+function renderStation(station: StationBoardData, direction: Direction, now: Date): string {
+  const config = stationConfig(station.id);
+  const minutesToOsloS = config?.minutesToOsloS;
+  const shortName = config?.shortName ?? station.name;
+  const tripLabel = escapeHtml(osloTripLabel(direction));
   const trip =
     minutesToOsloS != null
-      ? `<p class="trip"><strong>${formatDurationMinutes(minutesToOsloS)}</strong><span>til Oslo S</span></p>`
-      : '<p class="trip"><span>Mot Oslo S</span></p>';
+      ? `<p class="trip"><strong>${formatDurationMinutes(minutesToOsloS)}</strong><span>${tripLabel}</span></p>`
+      : `<p class="trip"><span>${tripLabel}</span></p>`;
+  const showArrival = direction === "south";
 
   const departures = station.departures;
   const list =
     departures.length === 0
-      ? '<p class="empty">Ingen tog mot Oslo S det neste døgnet.</p>'
+      ? `<p class="empty">${escapeHtml(emptyBoardText(direction, shortName))}</p>`
       : groupByOsloDay(departures, now)
           .map((section) => {
             const heading = section.heading
@@ -147,12 +169,12 @@ function renderStation(station: StationBoardData, now: Date): string {
                     : ""
                 }</span><span class="rule"></span></div>`
               : "";
-            return `${heading}<ul class="deps">${section.items.map(renderDeparture).join("")}</ul>`;
+            return `${heading}<ul class="deps">${section.items.map((departure) => renderDeparture(departure, showArrival)).join("")}</ul>`;
           })
           .join("");
 
   return `<section class="board">
-<div class="board-head"><h2>${escapeHtml(station.name)}</h2>${trip}</div>
+<div class="board-head"><h2>${escapeHtml(stationHeading(direction, shortName))}</h2>${trip}</div>
 ${station.situations.map(renderSituation).join("")}
 <div class="list">${list}</div>
 </section>`;
@@ -165,8 +187,10 @@ function renderStatus(fetchedAt: string | null, error: string | null): string {
   return `<p>Oppdatert ${fetchedAt ? formatClock(new Date(fetchedAt), true) : "—"}</p><p class="small">Oppdateres hvert 30. sekund</p>`;
 }
 
-function visibleStations(payload: DeparturesPayload, view: StationView): StationBoardData[] {
-  return payload.stations.filter((station) => view === "all" || station.id === view);
+function visibleStations(payload: DeparturesPayload, options: TavleOptions): StationBoardData[] {
+  return payload.directions[options.direction].filter(
+    (station) => options.view === "all" || station.id === options.view,
+  );
 }
 
 function boardsClass(count: number): string {
@@ -179,11 +203,11 @@ export function renderTavleParts(
   options: TavleOptions,
   now: Date,
 ): TavleParts {
-  const stations = visibleStations(payload, options.view);
+  const stations = visibleStations(payload, options);
   return {
     theme: resolveTavleTheme(options.theme, now),
     status: renderStatus(payload.fetchedAt, null),
-    boards: stations.map((station) => renderStation(station, now)).join(""),
+    boards: stations.map((station) => renderStation(station, options.direction, now)).join(""),
     boardsClass: boardsClass(stations.length),
   };
 }
@@ -203,11 +227,14 @@ function renderFooter(options: TavleOptions): string {
     `<a href="${escapeHtml(href)}"${active ? ' class="active"' : ""}>${escapeHtml(label)}</a>`;
 
   return `<nav class="bottom">
+<span class="group">${DIRECTIONS.map((direction) =>
+    link(tavleHref({ ...options, direction }), DIRECTION_LABELS[direction], direction === options.direction),
+  ).join("")}</span>
 <span class="group">${stationLinks
-    .map((item) => link(tavleHref(item.view, options.theme), item.label, item.view === options.view))
+    .map((item) => link(tavleHref({ ...options, view: item.view }), item.label, item.view === options.view))
     .join("")}</span>
 <span class="group">${themeLinks
-    .map((item) => link(tavleHref(options.view, item.theme), item.label, item.theme === options.theme))
+    .map((item) => link(tavleHref({ ...options, theme: item.theme }), item.label, item.theme === options.theme))
     .join("")}</span>
 </nav>`;
 }
@@ -245,7 +272,7 @@ export function renderTavlePage({
   ).join("");
 
   const config = {
-    pollUrl: tavleHref(options.view, options.theme, "&format=json"),
+    pollUrl: tavleHref(options, "&format=json"),
     pollMs: POLL_INTERVAL_MS,
     reloadMs: FULL_RELOAD_MS,
   };
@@ -260,7 +287,7 @@ export function renderTavlePage({
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="Avganger">
 <noscript><meta http-equiv="refresh" content="${POLL_INTERVAL_MS / 1000}"></noscript>
-<title>Avgangstavle — Kråkstad og Ski mot Oslo S</title>
+<title>Avgangstavle — Kråkstad, Ski og Oslo S</title>
 <style>${TAVLE_CSS}</style>
 </head>
 <body>

@@ -208,6 +208,7 @@ body {
 .info { -webkit-flex: 1 1 auto; flex: 1 1 auto; min-width: 0; }
 .dest { margin: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 19px; font-weight: 500; }
 .dest.cancelled { color: var(--danger); text-decoration: line-through; }
+.arrival { margin: 1px 0 0; font-size: 15px; color: var(--muted); font-variant-numeric: tabular-nums; }
 
 .tags { margin-top: 3px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
 .tag { display: inline-block; margin-right: 6px; padding: 1px 6px; border-radius: 4px; }

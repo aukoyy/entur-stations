@@ -13,6 +13,8 @@ import {
 } from "./StationViewToggle";
 import { persistTheme, readStoredTheme, ThemeToggle } from "./ThemeToggle";
 import { applyTheme, type ThemePreference } from "@/lib/theme";
+import type { Direction } from "@/lib/direction";
+import { DirectionToggle, persistDirection, readStoredDirection } from "./DirectionToggle";
 
 type LoadState =
   | { status: "loading" }
@@ -23,6 +25,7 @@ export function Infoscreen() {
   const [now, setNow] = useState<Date | null>(null);
   const [state, setState] = useState<LoadState>({ status: "loading" });
   const [view, setView] = useState<StationView>("all");
+  const [direction, setDirection] = useState<Direction>("north");
   const [theme, setTheme] = useState<ThemePreference>("auto");
 
   const load = useCallback(async () => {
@@ -45,6 +48,7 @@ export function Infoscreen() {
 
   useEffect(() => {
     setView(readStoredStationView());
+    setDirection(readStoredDirection());
     const storedTheme = readStoredTheme();
     setTheme(storedTheme);
     applyTheme(storedTheme);
@@ -53,6 +57,11 @@ export function Infoscreen() {
   const selectView = useCallback((next: StationView) => {
     setView(next);
     persistStationView(next);
+  }, []);
+
+  const selectDirection = useCallback((next: Direction) => {
+    setDirection(next);
+    persistDirection(next);
   }, []);
 
   const selectTheme = useCallback((next: ThemePreference) => {
@@ -95,7 +104,7 @@ export function Infoscreen() {
   }, [load]);
 
   const data = state.status === "ready" ? state.data : state.status === "error" ? state.data : null;
-  const visibleStations = data?.stations.filter(
+  const visibleStations = data?.directions[direction].filter(
     (station) => view === "all" || station.id === view,
   );
   const visibleConfigs =
@@ -127,6 +136,7 @@ export function Infoscreen() {
         </div>
         <div className="flex flex-col items-end gap-2 text-right text-sm text-muted sm:text-base">
           <div className="flex flex-wrap justify-end gap-2">
+            <DirectionToggle value={direction} onChange={selectDirection} />
             <StationViewToggle value={view} onChange={selectView} />
             <ThemeToggle value={theme} onChange={selectTheme} />
           </div>
@@ -160,6 +170,7 @@ export function Infoscreen() {
             <StationBoard
               key={station.id}
               station={station}
+              direction={direction}
               now={now ?? new Date(data.fetchedAt)}
             />
           ))}

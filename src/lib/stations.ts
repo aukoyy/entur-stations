@@ -3,6 +3,7 @@ export type StationConfig = {
   name: string;
   shortName: string;
   slug: string;
+  /** Typical travel time between the station and Oslo S (same both ways). */
   minutesToOsloS: number;
 };
 

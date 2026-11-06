@@ -4,6 +4,8 @@ import { formatDepartureTime } from "@/lib/time";
 
 type DepartureRowProps = {
   departure: Departure;
+  /** Going south, show when the train gets to Kråkstad/Ski. */
+  showArrival?: boolean;
 };
 
 function lineBadgeClass(departure: Departure): string {
@@ -20,7 +22,7 @@ function lineBadgeStyle(departure: Departure): CSSProperties | undefined {
   };
 }
 
-export function DepartureRow({ departure }: DepartureRowProps) {
+export function DepartureRow({ departure, showArrival = false }: DepartureRowProps) {
   const delayed = departure.delayMinutes >= 1 && !departure.cancelled;
   const timeClass = departure.cancelled
     ? "text-red-700 line-through dark:text-red-300"
@@ -80,6 +82,11 @@ export function DepartureRow({ departure }: DepartureRowProps) {
         >
           {departure.destination}
         </p>
+        {showArrival && departure.arrivalTime ? (
+          <p className="text-sm text-muted tabular-nums sm:text-base">
+            Ankomst {formatDepartureTime(departure.arrivalTime)}
+          </p>
+        ) : null}
         {hasBadges ? (
           <div className="mt-0.5 flex flex-wrap gap-1.5 text-xs font-semibold uppercase tracking-wide sm:text-sm">
             {departure.cancelled ? (

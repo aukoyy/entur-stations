@@ -1,3 +1,4 @@
+import type { Direction } from "./direction";
 import { isLocalLine, presentationForLine } from "./lines";
 import {
   ENTUR_DEPARTURE_COUNT,
@@ -43,12 +44,18 @@ const DEPARTURES_QUERY = `
               textColour
             }
           }
+        }
+        # Unlike serviceJourney.estimatedCalls, these are dated for the day this
+        # train actually runs (serviceJourney's are always dated today).
+        datedServiceJourney {
           estimatedCalls {
             aimedArrivalTime
             expectedArrivalTime
             aimedDepartureTime
             expectedDepartureTime
+            cancellation
             quay {
+              publicCode
               stopPlace {
                 id
                 name
@@ -106,7 +113,9 @@ type EnturJourneyCall = {
   expectedArrivalTime?: string | null;
   aimedDepartureTime?: string | null;
   expectedDepartureTime?: string | null;
+  cancellation?: boolean | null;
   quay?: {
+    publicCode?: string | null;
     stopPlace?: {
       id?: string | null;
       name?: string | null;
@@ -136,6 +145,8 @@ type EnturEstimatedCall = {
         textColour?: string | null;
       } | null;
     } | null;
+  } | null;
+  datedServiceJourney?: {
     estimatedCalls?: EnturJourneyCall[] | null;
   } | null;
   situations?: EnturSituation[] | null;
@@ -160,10 +171,16 @@ export type Situation = {
   description: string | null;
 };
 
+/**
+ * One train on a board. Times and platform are for where you board: the
+ * station going north, Oslo S going south.
+ */
 export type Departure = {
   id: string;
   aimedTime: string;
   expectedTime: string;
+  /** Expected arrival where you get off: Oslo S going north, the station going south. */
+  arrivalTime: string | null;
   delayMinutes: number;
   cancelled: boolean;
   realtime: boolean;
@@ -175,8 +192,6 @@ export type Departure = {
   transportSubmode: string | null;
   isRailReplacement: boolean;
   platform: string | null;
-  terminatesAtOsloS: boolean;
-  durationToOsloSMinutes: number | null;
   situations: Situation[];
 };
 
@@ -188,7 +203,7 @@ export type StationBoardData = {
 };
 
 export type DeparturesPayload = {
-  stations: StationBoardData[];
+  directions: Record<Direction, StationBoardData[]>;
   fetchedAt: string;
 };
 
@@ -266,32 +281,33 @@ function arrivalTime(call: EnturJourneyCall): string | null {
   );
 }
 
-function osloSLeg(
+type Leg = { from: EnturJourneyCall; to: EnturJourneyCall };
+
+/**
+ * The part of the journey you ride: station → Oslo S going north,
+ * Oslo S → station going south. Null if the train doesn't go that way.
+ */
+function legFor(
   calls: EnturJourneyCall[] | null | undefined,
   stopId: string,
-  aimedTime: string,
-  expectedTime: string,
-): { terminatesAtOsloS: boolean; durationToOsloSMinutes: number | null } | null {
+  aimedDepartureTime: string,
+  direction: Direction,
+): Leg | null {
   if (!calls?.length) return null;
 
-  const currentIndex = findCurrentCallIndex(calls, stopId, aimedTime);
+  const currentIndex = findCurrentCallIndex(calls, stopId, aimedDepartureTime);
   if (currentIndex < 0) return null;
+  const current = calls[currentIndex];
 
-  const later = calls.slice(currentIndex + 1);
-  const osloCall = later.find((call) => isStopPlace(call, OSLO_S_STOP_PLACE_ID));
-  if (!osloCall) return null;
+  if (direction === "north") {
+    const osloCall = calls.slice(currentIndex + 1).find((call) => isStopPlace(call, OSLO_S_STOP_PLACE_ID));
+    return osloCall ? { from: current, to: osloCall } : null;
+  }
 
-  const lastCall = calls[calls.length - 1];
-  const osloArrival = arrivalTime(osloCall);
-  const durationToOsloSMinutes =
-    osloArrival == null
-      ? null
-      : Math.max(0, Math.round((Date.parse(osloArrival) - Date.parse(expectedTime)) / 60_000));
-
-  return {
-    terminatesAtOsloS: lastCall != null && isStopPlace(lastCall, OSLO_S_STOP_PLACE_ID),
-    durationToOsloSMinutes,
-  };
+  for (let index = currentIndex - 1; index >= 0; index--) {
+    if (isStopPlace(calls[index], OSLO_S_STOP_PLACE_ID)) return { from: calls[index], to: current };
+  }
+  return null;
 }
 
 function isTrainOrReplacement(call: EnturEstimatedCall): boolean {
@@ -307,13 +323,34 @@ function isRegionalTrainOrReplacement(call: EnturEstimatedCall): boolean {
   return !isLocalLine(publicCode);
 }
 
-function mapDeparture(call: EnturEstimatedCall, stopId: string, index: number): Departure | null {
-  const aimedTime = call.aimedDepartureTime;
-  if (!aimedTime) return null;
+function mapDeparture(
+  call: EnturEstimatedCall,
+  stopId: string,
+  index: number,
+  direction: Direction,
+): Departure | null {
+  const stationAimedTime = call.aimedDepartureTime;
+  if (!stationAimedTime) return null;
 
-  const expectedTime = call.expectedDepartureTime ?? aimedTime;
-  const leg = osloSLeg(call.serviceJourney?.estimatedCalls, stopId, aimedTime, expectedTime);
+  const leg = legFor(call.datedServiceJourney?.estimatedCalls, stopId, stationAimedTime, direction);
   if (!leg) return null;
+
+  // Going north you board here, so use the call itself. Going south you board at Oslo S.
+  const boarding =
+    direction === "north"
+      ? {
+          aimedTime: stationAimedTime,
+          expectedTime: call.expectedDepartureTime ?? stationAimedTime,
+          cancelled: Boolean(call.cancellation),
+          platform: call.quay?.publicCode ?? null,
+        }
+      : {
+          aimedTime: leg.from.aimedDepartureTime ?? null,
+          expectedTime: leg.from.expectedDepartureTime ?? leg.from.aimedDepartureTime ?? null,
+          cancelled: Boolean(call.cancellation || leg.from.cancellation),
+          platform: leg.from.quay?.publicCode ?? null,
+        };
+  if (!boarding.aimedTime || !boarding.expectedTime) return null;
 
   const line = call.serviceJourney?.line;
   const transportSubmode = line?.transportSubmode ?? null;
@@ -321,11 +358,12 @@ function mapDeparture(call: EnturEstimatedCall, stopId: string, index: number): 
   const colors = presentationForLine(publicCode, line?.presentation);
 
   return {
-    id: call.serviceJourney?.id ?? `${stopId}-${aimedTime}-${index}`,
-    aimedTime,
-    expectedTime,
-    delayMinutes: delayMinutes(aimedTime, expectedTime),
-    cancelled: Boolean(call.cancellation),
+    id: call.serviceJourney?.id ?? `${stopId}-${stationAimedTime}-${index}`,
+    aimedTime: boarding.aimedTime,
+    expectedTime: boarding.expectedTime,
+    arrivalTime: arrivalTime(leg.to),
+    delayMinutes: delayMinutes(boarding.aimedTime, boarding.expectedTime),
+    cancelled: boarding.cancelled,
     realtime: Boolean(call.realtime),
     destination: call.destinationDisplay?.frontText ?? "Ukjent destinasjon",
     line: publicCode,
@@ -334,36 +372,47 @@ function mapDeparture(call: EnturEstimatedCall, stopId: string, index: number): 
     transportMode: line?.transportMode ?? "unknown",
     transportSubmode,
     isRailReplacement: transportSubmode === "railReplacementBus",
-    platform: call.quay?.publicCode ?? null,
-    terminatesAtOsloS: leg.terminatesAtOsloS,
-    durationToOsloSMinutes: leg.durationToOsloSMinutes,
+    platform: boarding.platform,
     situations: uniqueSituations(call.situations),
   };
+}
+
+/** Trains that already left Oslo S still show up at the station; drop them. */
+const ALREADY_LEFT_GRACE_MS = 60_000;
+
+function mapBoards(
+  stopPlaces: EnturStopPlace[],
+  direction: Direction,
+  now: Date,
+): StationBoardData[] {
+  const boards = stopPlaces.map((stop) => {
+    const mapped = (stop.estimatedCalls ?? [])
+      .filter(isRegionalTrainOrReplacement)
+      .map((call, index) => mapDeparture(call, stop.id, index, direction))
+      .filter((departure): departure is Departure => departure !== null)
+      .filter((departure) => Date.parse(departure.expectedTime) >= now.getTime() - ALREADY_LEFT_GRACE_MS)
+      .sort((a, b) => Date.parse(a.expectedTime) - Date.parse(b.expectedTime));
+
+    return {
+      id: stop.id,
+      name: stop.name,
+      departures: pickStationDepartures(mapped, now),
+      situations: uniqueSituations(stop.situations),
+    };
+  });
+
+  return boards.sort((a, b) => STATION_IDS.indexOf(a.id) - STATION_IDS.indexOf(b.id));
 }
 
 export function mapStopPlaces(
   stopPlaces: Array<EnturStopPlace | null> | null | undefined,
   now = new Date(),
-): StationBoardData[] {
-  const boards = (stopPlaces ?? [])
-    .filter((stop): stop is EnturStopPlace => stop !== null)
-    .map((stop) => {
-      const mapped = (stop.estimatedCalls ?? [])
-        .filter(isRegionalTrainOrReplacement)
-        .map((call, index) => mapDeparture(call, stop.id, index))
-        .filter((departure): departure is Departure => departure !== null);
-
-      return {
-        id: stop.id,
-        name: stop.name,
-        departures: pickStationDepartures(mapped, now),
-        situations: uniqueSituations(stop.situations),
-      };
-    });
-
-  return boards.sort(
-    (a, b) => STATION_IDS.indexOf(a.id) - STATION_IDS.indexOf(b.id),
-  );
+): Record<Direction, StationBoardData[]> {
+  const stops = (stopPlaces ?? []).filter((stop): stop is EnturStopPlace => stop !== null);
+  return {
+    north: mapBoards(stops, "north", now),
+    south: mapBoards(stops, "south", now),
+  };
 }
 
 export async function fetchDepartures(): Promise<DeparturesPayload> {
@@ -396,7 +445,7 @@ export async function fetchDepartures(): Promise<DeparturesPayload> {
   }
 
   return {
-    stations: mapStopPlaces(payload.data?.stopPlaces),
+    directions: mapStopPlaces(payload.data?.stopPlaces),
     fetchedAt: new Date().toISOString(),
   };
 }

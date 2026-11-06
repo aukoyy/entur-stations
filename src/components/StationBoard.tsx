@@ -1,3 +1,4 @@
+import { emptyBoardText, osloTripLabel, stationHeading, type Direction } from "@/lib/direction";
 import type { StationBoardData } from "@/lib/entur";
 import { stationConfig } from "@/lib/stations";
 import { formatDurationMinutes, groupByOsloDay } from "@/lib/time";
@@ -5,18 +6,21 @@ import { DepartureRow } from "./DepartureRow";
 
 type StationBoardProps = {
   station: StationBoardData;
+  direction: Direction;
   now: Date;
 };
 
-export function StationBoard({ station, now }: StationBoardProps) {
+export function StationBoard({ station, direction, now }: StationBoardProps) {
   const sections = groupByOsloDay(station.departures, now);
-  const minutesToOsloS = stationConfig(station.id)?.minutesToOsloS;
+  const config = stationConfig(station.id);
+  const minutesToOsloS = config?.minutesToOsloS;
+  const shortName = config?.shortName ?? station.name;
 
   return (
     <section className="flex min-h-0 flex-1 flex-col">
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl lg:text-4xl">
-          {station.name}
+          {stationHeading(direction, shortName)}
         </h2>
         {minutesToOsloS != null ? (
           <p className="flex items-baseline gap-2 text-muted">
@@ -24,12 +28,12 @@ export function StationBoard({ station, now }: StationBoardProps) {
               {formatDurationMinutes(minutesToOsloS)}
             </span>
             <span className="text-sm font-medium uppercase tracking-[0.18em] text-subtle">
-              til Oslo S
+              {osloTripLabel(direction)}
             </span>
           </p>
         ) : (
           <p className="text-sm font-medium uppercase tracking-[0.18em] text-subtle sm:text-base">
-            Mot Oslo S
+            {osloTripLabel(direction)}
           </p>
         )}
       </div>
@@ -55,7 +59,7 @@ export function StationBoard({ station, now }: StationBoardProps) {
 
       {station.departures.length === 0 ? (
         <p className="rounded-lg bg-surface px-4 py-6 text-lg text-muted">
-          Ingen tog mot Oslo S det neste døgnet.
+          {emptyBoardText(direction, shortName)}
         </p>
       ) : (
         <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
@@ -82,6 +86,7 @@ export function StationBoard({ station, now }: StationBoardProps) {
                   <DepartureRow
                     key={`${departure.id}-${departure.aimedTime}`}
                     departure={departure}
+                    showArrival={direction === "south"}
                   />
                 ))}
               </ul>
