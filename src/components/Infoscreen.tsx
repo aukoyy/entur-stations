@@ -114,7 +114,7 @@ export function Infoscreen() {
         south ? "border-south" : "border-transparent",
       ].join(" ")}
     >
-      <header className="mb-4 flex items-end justify-between gap-4 sm:mb-6">
+      <header className="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
         <div>
           <p className="text-sm font-medium uppercase tracking-[0.2em] text-muted">
             Avgangstavle
@@ -138,8 +138,8 @@ export function Infoscreen() {
             ))}
           </ul>
         </div>
-        <div className="flex flex-col items-end gap-2 text-right text-sm text-muted sm:text-base">
-          <div className="flex flex-wrap justify-end gap-2">
+        <div className="flex flex-col items-start gap-2 text-sm text-muted sm:items-end sm:text-right">
+          <div className="flex flex-wrap gap-2 sm:justify-end">
             <DirectionToggle value={direction} onChange={selectDirection} />
             <StationViewToggle value={view} onChange={selectView} />
             <ThemeToggle value={theme} onChange={selectTheme} />
@@ -148,7 +148,7 @@ export function Infoscreen() {
             {state.status === "error" ? (
               <p className="font-medium text-red-600 dark:text-red-400">Kunne ikke hente avganger</p>
             ) : data ? (
-              <p>
+              <p title="Oppdateres hvert 30. sekund">
                 Oppdatert {formatClock(new Date(data.fetchedAt), true)}
               </p>
             ) : (
@@ -156,9 +156,7 @@ export function Infoscreen() {
             )}
             {state.status === "error" ? (
               <p className="mt-1 max-w-xs text-xs text-red-600/80 dark:text-red-300/80">{state.message}</p>
-            ) : (
-              <p className="mt-1 text-xs text-subtle">Oppdateres hvert 30. sekund</p>
-            )}
+            ) : null}
           </div>
         </div>
       </header>

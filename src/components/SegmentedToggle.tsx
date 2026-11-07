@@ -34,7 +34,7 @@ export function SegmentedToggle<T extends string>({
             aria-checked={selected}
             onClick={() => onChange(option.value)}
             className={[
-              "rounded-md px-3 py-1.5 text-sm font-medium transition-colors sm:px-4 sm:text-base",
+              "rounded-md px-2.5 py-1.5 text-sm font-medium whitespace-nowrap transition-colors sm:px-3",
               selected
                 ? (option.activeClassName ?? "bg-toggle-active text-toggle-active-fg")
                 : "text-muted hover:text-foreground",

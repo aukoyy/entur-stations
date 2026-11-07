@@ -6,7 +6,7 @@ Infoscreen for **regiontog og regionekspress** between Kråkstad/Ski and Oslo S,
 
 - Next **R / RE** trains for about **24 hours** (local L-lines are hidden)
 - Direction: **Nord** (default), from Kråkstad/Ski to Oslo S, headed *Fra Kråkstad* / *Fra Ski*; or **Sør**, from Oslo S to Kråkstad/Ski, headed *Til Kråkstad* / *Til Ski*. Going south, each row shows the departure time and platform at Oslo S plus the arrival time at the station
-- South gets its own violet accent: a band across the top, the station headings and the Sør toggle
+- South gets its own violet accent: a band across the top and the Sør toggle
 - The direction is picked from your location: closer to Oslo S than to Kråkstad/Ski means Sør, otherwise Nord. The position is only used in the browser. Tapping the toggle overrides it until the app has been in the background for 30 minutes; without location access it's Nord
 - Typical travel time next to the heading (*til* / *fra Oslo S*): **20 min** for Kråkstad, **12 min** for Ski
 - Line colours from Entur (regiontog red, regionekspress cyan)

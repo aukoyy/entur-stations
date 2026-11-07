@@ -100,10 +100,9 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* South (from Oslo S): coloured band on top and coloured station headings. */
+/* South (from Oslo S): coloured band on top. */
 .page { border-top: 8px solid transparent; }
 .dir-south { border-top-color: var(--south); }
-.dir-south .board-head h2 { color: var(--south); }
 
 .legend { list-style: none; margin: 8px 0 0; padding: 0; font-size: 13px; font-weight: 500; color: var(--muted); }
 .legend li { display: inline-block; margin-right: 16px; }
