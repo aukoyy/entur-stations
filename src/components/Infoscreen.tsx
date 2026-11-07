@@ -13,7 +13,6 @@ import {
 } from "./StationViewToggle";
 import { persistTheme, readStoredTheme, ThemeToggle } from "./ThemeToggle";
 import { applyTheme, type ThemePreference } from "@/lib/theme";
-import { routeLabel } from "@/lib/direction";
 import { DirectionToggle } from "./DirectionToggle";
 import { useDirection } from "./useDirection";
 
@@ -117,14 +116,12 @@ export function Infoscreen() {
     >
       <header className="mb-4 flex items-end justify-between gap-4 sm:mb-6">
         <div>
-          <div className="flex flex-wrap items-baseline gap-x-4 text-4xl font-semibold sm:gap-x-6 sm:text-5xl lg:text-6xl">
-            <time className="tabular-nums">{now ? formatClock(now) : "--:--"}</time>
-            <p className={south ? "text-south" : undefined}>
-              <span aria-hidden>→ </span>
-              <span className="sr-only">Mot </span>
-              {routeLabel(direction, view)}
-            </p>
-          </div>
+          <p className="text-sm font-medium uppercase tracking-[0.2em] text-muted">
+            Avgangstavle
+          </p>
+          <time className="block font-semibold tabular-nums text-4xl sm:text-5xl lg:text-6xl">
+            {now ? formatClock(now) : "--:--"}
+          </time>
           {directionSource === "location" ? (
             <p className="mt-1 text-xs text-subtle sm:text-sm">Retning valgt ut fra hvor du er</p>
           ) : null}

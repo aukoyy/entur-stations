@@ -83,15 +83,26 @@ body {
   margin-bottom: 16px;
 }
 
-/* Clock and destination share one big line: "22:41  → Oslo S". */
-.headline { font-size: 56px; font-weight: 600; line-height: 1.05; }
-.clock { display: inline-block; margin-right: 24px; font-variant-numeric: tabular-nums; }
-.route { display: inline-block; }
+.eyebrow {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
 
-/* South (from Oslo S): coloured band on top, coloured destination and headings. */
+.clock {
+  display: block;
+  font-size: 56px;
+  font-weight: 600;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+
+/* South (from Oslo S): coloured band on top and coloured station headings. */
 .page { border-top: 8px solid transparent; }
 .dir-south { border-top-color: var(--south); }
-.dir-south .route,
 .dir-south .board-head h2 { color: var(--south); }
 
 .legend { list-style: none; margin: 8px 0 0; padding: 0; font-size: 13px; font-weight: 500; color: var(--muted); }

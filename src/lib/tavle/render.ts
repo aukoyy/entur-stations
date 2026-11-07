@@ -6,7 +6,6 @@ import {
   emptyBoardText,
   osloTripLabel,
   parseDirection,
-  routeLabel,
   stationHeading,
   type Direction,
 } from "@/lib/direction";
@@ -300,9 +299,8 @@ export function renderTavlePage({
 <div class="page${options.direction === "south" ? " dir-south" : ""}">
 <header class="top">
 <div>
-<div class="headline"><span class="clock" id="clock">${formatClock(now)}</span><span class="route">→ ${escapeHtml(
-    routeLabel(options.direction, options.view),
-  )}</span></div>
+<p class="eyebrow">Avgangstavle</p>
+<span class="clock" id="clock">${formatClock(now)}</span>
 <ul class="legend">${legend}</ul>
 </div>
 <div class="status" id="status">${status}</div>

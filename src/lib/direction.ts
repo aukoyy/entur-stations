@@ -1,4 +1,4 @@
-import { OSLO_S_POSITION, STATIONS, type GeoPosition, type StationView } from "./stations";
+import { OSLO_S_POSITION, STATIONS, type GeoPosition } from "./stations";
 
 /**
  * Travel direction. North: from Kråkstad/Ski to Oslo S (the default).
@@ -21,13 +21,6 @@ export function parseDirection(value: string | null | undefined): Direction {
 
 export function directionSlug(direction: Direction): string {
   return direction === "south" ? "sor" : "nord";
-}
-
-/** Where the trains on screen are going, shown big next to the clock: "Oslo S" / "Kråkstad / Ski". */
-export function routeLabel(direction: Direction, view: StationView): string {
-  if (direction === "north") return "Oslo S";
-  const stations = view === "all" ? STATIONS : STATIONS.filter((station) => station.id === view);
-  return stations.map((station) => station.shortName).join(" / ");
 }
 
 /** Distance in km. An equirectangular approximation is plenty at this scale. */
