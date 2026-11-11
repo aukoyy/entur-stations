@@ -196,6 +196,8 @@ body {
 }
 .dep.is-delayed { background: var(--warn-bg); box-shadow: 0 0 0 1px var(--warn-ring); }
 .dep.is-replacement { border-left-color: #fbbf24; background: var(--warn-bg); box-shadow: 0 0 0 1px var(--warn-ring); }
+/* Too late to get to the station, but the train hasn't left yet. */
+.dep.is-missed { opacity: 0.4; }
 .dep.is-cancelled { border-left-color: #dc2626; background: var(--danger-bg); box-shadow: 0 0 0 1px var(--danger-ring); }
 
 .badge {
@@ -216,6 +218,8 @@ body {
 .time .now { display: block; font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .time .now.late { color: var(--warn-text); }
 .time .now.cancelled { color: var(--danger); text-decoration: line-through; }
+.time .countdown { display: block; font-size: 13px; font-weight: 500; color: var(--muted); font-variant-numeric: tabular-nums; }
+.time .countdown:empty { display: none; }
 .time .was { display: block; font-size: 13px; color: var(--subtle); text-decoration: line-through; font-variant-numeric: tabular-nums; }
 
 .info { -webkit-flex: 1 1 auto; flex: 1 1 auto; min-width: 0; }
@@ -227,6 +231,9 @@ body {
 .tag { display: inline-block; margin-right: 6px; padding: 1px 6px; border-radius: 4px; }
 .tag.cancelled { background: #dc2626; color: #fff; }
 .tag.replacement { background: #fbbf24; color: #09090b; }
+.tag.leave { background: #059669; color: #fff; white-space: nowrap; }
+.dark .tag.leave { background: #10b981; color: #09090b; }
+.tag.leave:empty { display: none; }
 .tag.delayed { background: #facc15; color: #09090b; }
 
 .note { margin: 4px 0 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 14px; color: var(--note); }
@@ -234,6 +241,17 @@ body {
 .platform { -webkit-flex-shrink: 0; flex-shrink: 0; margin-left: 14px; text-align: right; color: var(--muted); }
 .platform small { display: block; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; }
 .platform strong { font-size: 20px; font-weight: 600; color: var(--foreground); }
+
+.stale {
+  margin: 0 0 16px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: #dc2626;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 600;
+}
+.stale:empty { display: none; }
 
 .empty, .error-box { margin: 0; padding: 20px 16px; border-radius: 8px; font-size: 18px; }
 .empty { background: var(--surface); color: var(--muted); }

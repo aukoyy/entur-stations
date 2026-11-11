@@ -1,3 +1,4 @@
+import { DEPARTED_AFTER_MS } from "./departure-status";
 import type { Direction } from "./direction";
 import { isLocalLine, presentationForLine } from "./lines";
 import {
@@ -378,7 +379,7 @@ function mapDeparture(
 }
 
 /** Trains that already left Oslo S still show up at the station; drop them. */
-const ALREADY_LEFT_GRACE_MS = 60_000;
+const ALREADY_LEFT_GRACE_MS = DEPARTED_AFTER_MS;
 
 function mapBoards(
   stopPlaces: EnturStopPlace[],
@@ -448,4 +449,26 @@ export async function fetchDepartures(): Promise<DeparturesPayload> {
     directions: mapStopPlaces(payload.data?.stopPlaces),
     fetchedAt: new Date().toISOString(),
   };
+}
+
+/** How long one Entur response is shared between all screens and both pages. */
+const CACHE_TTL_MS = 15_000;
+
+let cached: { at: number; payload: Promise<DeparturesPayload> } | null = null;
+
+/**
+ * fetchDepartures with a short in-memory cache, so every open screen polling
+ * every 30 seconds doesn't each pull ~1 MB from Entur. Concurrent requests share
+ * one fetch, and a failed fetch isn't cached, so the next request retries.
+ */
+export function getDepartures(): Promise<DeparturesPayload> {
+  const now = Date.now();
+  if (cached && now - cached.at < CACHE_TTL_MS) return cached.payload;
+
+  const entry = { at: now, payload: fetchDepartures() };
+  cached = entry;
+  entry.payload.catch(() => {
+    if (cached === entry) cached = null;
+  });
+  return entry.payload;
 }

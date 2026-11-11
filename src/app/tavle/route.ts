@@ -1,4 +1,4 @@
-import { fetchDepartures, type DeparturesPayload } from "@/lib/entur";
+import { getDepartures, type DeparturesPayload } from "@/lib/entur";
 import { parseTavleOptions, renderTavlePage, renderTavleParts } from "@/lib/tavle/render";
 
 /**
@@ -22,7 +22,7 @@ export async function GET(request: Request) {
   let payload: DeparturesPayload | null = null;
   let error: string | null = null;
   try {
-    payload = await fetchDepartures();
+    payload = await getDepartures();
   } catch (caught) {
     error = caught instanceof Error ? caught.message : "Ukjent feil";
   }

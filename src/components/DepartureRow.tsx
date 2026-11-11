@@ -1,9 +1,11 @@
 import type { CSSProperties } from "react";
+import type { DepartureStatus } from "@/lib/departure-status";
 import type { Departure } from "@/lib/entur";
 import { formatDepartureTime } from "@/lib/time";
 
 type DepartureRowProps = {
   departure: Departure;
+  status?: DepartureStatus;
   /** Going south, show when the train gets to Kråkstad/Ski. */
   showArrival?: boolean;
 };
@@ -22,7 +24,7 @@ function lineBadgeStyle(departure: Departure): CSSProperties | undefined {
   };
 }
 
-export function DepartureRow({ departure, showArrival = false }: DepartureRowProps) {
+export function DepartureRow({ departure, status, showArrival = false }: DepartureRowProps) {
   const delayed = departure.delayMinutes >= 1 && !departure.cancelled;
   const timeClass = departure.cancelled
     ? "text-red-700 line-through dark:text-red-300"
@@ -30,12 +32,15 @@ export function DepartureRow({ departure, showArrival = false }: DepartureRowPro
       ? "text-amber-700 dark:text-yellow-300"
       : "text-foreground";
 
-  const hasBadges = departure.cancelled || departure.isRailReplacement || delayed;
+  const leaveHint = status?.leaveHint ?? null;
+  const hasBadges = departure.cancelled || departure.isRailReplacement || delayed || leaveHint != null;
 
   return (
     <li
       className={[
-        "grid grid-cols-[auto_4.5rem_minmax(0,1fr)_auto] items-center gap-3 rounded-lg border-l-4 px-3 py-2.5 sm:gap-4 sm:px-4 sm:py-3",
+        "grid grid-cols-[auto_4.5rem_minmax(0,1fr)_auto] items-center gap-3 rounded-lg border-l-4 px-3 py-2.5 transition-opacity sm:gap-4 sm:px-4 sm:py-3",
+        // Too late to get to the station, but the train hasn't left yet.
+        status?.missed ? "opacity-40" : "",
         departure.cancelled
           ? "border-red-600 bg-red-50 ring-1 ring-red-200 dark:bg-red-950/40 dark:ring-red-800/60"
           : departure.isRailReplacement
@@ -72,6 +77,11 @@ export function DepartureRow({ departure, showArrival = false }: DepartureRowPro
             {formatDepartureTime(departure.expectedTime)}
           </time>
         )}
+        {status?.countdown && !departure.cancelled ? (
+          <span className="block text-xs font-medium tabular-nums text-muted sm:text-sm">
+            {status.countdown}
+          </span>
+        ) : null}
       </div>
 
       <div className="min-w-0">
@@ -89,6 +99,11 @@ export function DepartureRow({ departure, showArrival = false }: DepartureRowPro
         ) : null}
         {hasBadges ? (
           <div className="mt-0.5 flex flex-wrap gap-1.5 text-xs font-semibold uppercase tracking-wide sm:text-sm">
+            {leaveHint ? (
+              <span className="whitespace-nowrap rounded bg-emerald-600 px-1.5 py-0.5 text-white dark:bg-emerald-500 dark:text-zinc-950">
+                {leaveHint}
+              </span>
+            ) : null}
             {departure.cancelled ? (
               <span className="rounded bg-red-600 px-1.5 py-0.5 text-white">Innstilt</span>
             ) : null}

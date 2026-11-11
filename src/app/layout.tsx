@@ -16,6 +16,8 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Avgangstavle — Kråkstad, Ski og Oslo S",
   description: "Neste togavganger mellom Oslo S og Kråkstad stasjon og Ski stasjon",
+  // Opened from the home screen, run full screen without the Safari bar.
+  appleWebApp: { capable: true, title: "Avganger", statusBarStyle: "default" },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

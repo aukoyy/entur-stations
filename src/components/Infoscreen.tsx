@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { isStale } from "@/lib/departure-status";
 import type { DeparturesPayload } from "@/lib/entur";
 import { LINE_LEGEND } from "@/lib/lines";
 import { POLL_INTERVAL_MS, STATIONS, type StationView } from "@/lib/stations";
@@ -13,53 +14,52 @@ import {
 } from "./StationViewToggle";
 import { persistTheme, readStoredTheme, ThemeToggle } from "./ThemeToggle";
 import { applyTheme, type ThemePreference } from "@/lib/theme";
+import { useStoredSetting } from "./useStoredSetting";
 import { DirectionToggle } from "./DirectionToggle";
 import { useDirection } from "./useDirection";
 
-type LoadState =
-  | { status: "loading" }
-  | { status: "ready"; data: DeparturesPayload }
-  | { status: "error"; message: string; data: DeparturesPayload | null };
+type LoadState = {
+  /** The last departures we got; kept on screen when a later update fails. */
+  data: DeparturesPayload | null;
+  /** Device time of the last successful update, for the out-of-date warning. */
+  receivedAt: number | null;
+  error: string | null;
+};
+
+async function fetchDeparturesPayload(): Promise<DeparturesPayload> {
+  const response = await fetch("/api/departures", { cache: "no-store" });
+  const payload = (await response.json()) as DeparturesPayload & { error?: string };
+  if (!response.ok) {
+    throw new Error(payload.error ?? `HTTP ${response.status}`);
+  }
+  return payload;
+}
 
 export function Infoscreen() {
   const [now, setNow] = useState<Date | null>(null);
-  const [state, setState] = useState<LoadState>({ status: "loading" });
-  const [view, setView] = useState<StationView>("all");
+  const [state, setState] = useState<LoadState>({ data: null, receivedAt: null, error: null });
+  const view = useStoredSetting<StationView>(readStoredStationView, "all");
+  const theme = useStoredSetting<ThemePreference>(readStoredTheme, "auto");
   const { direction, source: directionSource, selectDirection } = useDirection();
-  const [theme, setTheme] = useState<ThemePreference>("auto");
 
-  const load = useCallback(async () => {
-    try {
-      const response = await fetch("/api/departures", { cache: "no-store" });
-      const payload = (await response.json()) as DeparturesPayload & { error?: string };
-      if (!response.ok) {
-        throw new Error(payload.error ?? `HTTP ${response.status}`);
-      }
-      setState({ status: "ready", data: payload });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Ukjent feil";
-      setState((previous) => ({
-        status: "error",
-        message,
-        data: previous.status === "ready" ? previous.data : previous.status === "error" ? previous.data : null,
-      }));
-    }
-  }, []);
-
-  useEffect(() => {
-    setView(readStoredStationView());
-    const storedTheme = readStoredTheme();
-    setTheme(storedTheme);
-    applyTheme(storedTheme);
-  }, []);
+  const load = useCallback(
+    () =>
+      fetchDeparturesPayload().then(
+        (data) => setState({ data, receivedAt: Date.now(), error: null }),
+        (error: unknown) =>
+          setState((previous) => ({
+            ...previous,
+            error: error instanceof Error ? error.message : "Ukjent feil",
+          })),
+      ),
+    [],
+  );
 
   const selectView = useCallback((next: StationView) => {
-    setView(next);
     persistStationView(next);
   }, []);
 
   const selectTheme = useCallback((next: ThemePreference) => {
-    setTheme(next);
     persistTheme(next);
   }, []);
 
@@ -97,7 +97,8 @@ export function Infoscreen() {
     };
   }, [load]);
 
-  const data = state.status === "ready" ? state.data : state.status === "error" ? state.data : null;
+  const data = state.data;
+  const stale = now != null && isStale(state.receivedAt, now);
   const visibleStations = data?.directions[direction].filter(
     (station) => view === "all" || station.id === view,
   );
@@ -145,7 +146,7 @@ export function Infoscreen() {
             <ThemeToggle value={theme} onChange={selectTheme} />
           </div>
           <div>
-            {state.status === "error" ? (
+            {state.error ? (
               <p className="font-medium text-red-600 dark:text-red-400">Kunne ikke hente avganger</p>
             ) : data ? (
               <p title="Oppdateres hvert 30. sekund">
@@ -154,12 +155,21 @@ export function Infoscreen() {
             ) : (
               <p>Henter avganger…</p>
             )}
-            {state.status === "error" ? (
-              <p className="mt-1 max-w-xs text-xs text-red-600/80 dark:text-red-300/80">{state.message}</p>
+            {state.error ? (
+              <p className="mt-1 max-w-xs text-xs text-red-600/80 dark:text-red-300/80">{state.error}</p>
             ) : null}
           </div>
         </div>
       </header>
+
+      {stale && data ? (
+        <p
+          role="alert"
+          className="mb-4 rounded-lg bg-red-600 px-4 py-3 text-base font-semibold text-white sm:text-lg"
+        >
+          Utdatert: sist oppdatert {formatClock(new Date(data.fetchedAt))}. Avgangene kan ha endret seg.
+        </p>
+      ) : null}
 
       {data && visibleStations ? (
         <div
@@ -177,9 +187,9 @@ export function Infoscreen() {
             />
           ))}
         </div>
-      ) : state.status === "error" ? (
+      ) : state.error ? (
         <p className="rounded-lg bg-red-50 px-4 py-6 text-lg text-red-800 dark:bg-red-950/40 dark:text-red-200">
-          {state.message}
+          {state.error}
         </p>
       ) : (
         <div

@@ -6,9 +6,17 @@ export type StationConfig = {
   /** Typical travel time between the station and Oslo S (same both ways). */
   minutesToOsloS: number;
   position: GeoPosition;
+  /** How long it takes to get from home to this station, if you go from there. */
+  fromHome?: Travel;
 };
 
 export type GeoPosition = { latitude: number; longitude: number };
+
+/** Getting to the station you board at, before the train leaves. */
+export type Travel = { minutes: number; mode: "drive" | "walk" };
+
+/** From work to Oslo S, where every southbound train starts. */
+export const WORK_TO_OSLO_S: Travel = { minutes: 12, mode: "walk" };
 
 export const STATIONS: StationConfig[] = [
   {
@@ -17,6 +25,7 @@ export const STATIONS: StationConfig[] = [
     shortName: "Kråkstad",
     slug: "krakstad",
     minutesToOsloS: 20,
+    fromHome: { minutes: 4, mode: "drive" },
     position: { latitude: 59.683362, longitude: 10.890785 },
   },
   {
@@ -25,6 +34,7 @@ export const STATIONS: StationConfig[] = [
     shortName: "Ski",
     slug: "ski",
     minutesToOsloS: 12,
+    fromHome: { minutes: 9, mode: "drive" },
     position: { latitude: 59.718294, longitude: 10.833673 },
   },
 ];

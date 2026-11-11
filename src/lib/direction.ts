@@ -1,4 +1,11 @@
-import { OSLO_S_POSITION, STATIONS, type GeoPosition } from "./stations";
+import {
+  OSLO_S_POSITION,
+  stationConfig,
+  STATIONS,
+  WORK_TO_OSLO_S,
+  type GeoPosition,
+  type Travel,
+} from "./stations";
 
 /**
  * Travel direction. North: from Kråkstad/Ski to Oslo S (the default).
@@ -21,6 +28,15 @@ export function parseDirection(value: string | null | undefined): Direction {
 
 export function directionSlug(direction: Direction): string {
   return direction === "south" ? "sor" : "nord";
+}
+
+/**
+ * Time to get to where you board: from home to the station going north (if
+ * configured), from work to Oslo S going south. Null means no leave hints.
+ */
+export function travelToBoarding(direction: Direction, stationId: string): Travel | null {
+  if (direction === "south") return WORK_TO_OSLO_S;
+  return stationConfig(stationId)?.fromHome ?? null;
 }
 
 /** Distance in km. An equirectangular approximation is plenty at this scale. */

@@ -1,8 +1,14 @@
 import {
-  persistTheme,
+  persistTheme as saveTheme,
   readStoredTheme,
   type ThemePreference,
 } from "@/lib/theme";
+import { notifySettingsChanged } from "./useStoredSetting";
+
+function persistTheme(preference: ThemePreference) {
+  saveTheme(preference);
+  notifySettingsChanged();
+}
 
 const CYCLE: ThemePreference[] = ["auto", "light", "dark"];
 

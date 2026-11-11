@@ -7,8 +7,18 @@ import {
   osloTripLabel,
   parseDirection,
   stationHeading,
+  travelToBoarding,
   type Direction,
 } from "@/lib/direction";
+import {
+  COUNTDOWN_WITHIN_MINUTES,
+  DEPARTED_AFTER_MS,
+  departureStatuses,
+  STALE_AFTER_MS,
+  TRAVEL_VERBS,
+  upcomingDepartures,
+  type DepartureStatus,
+} from "@/lib/departure-status";
 import type { Departure, DeparturesPayload, Situation, StationBoardData } from "@/lib/entur";
 import { LINE_LEGEND } from "@/lib/lines";
 import {
@@ -79,15 +89,23 @@ function tavleHref(options: TavleOptions, extra = ""): string {
   return `${TAVLE_PATH}?${DIRECTION_QUERY_PARAM}=${directionSlug(options.direction)}&${STATION_QUERY_PARAM}=${stationViewSlug(options.view)}&${THEME_QUERY_PARAM}=${themeSlug(options.theme)}${extra}`;
 }
 
-function renderDeparture(departure: Departure, showArrival: boolean): string {
+/**
+ * Rows carry their departure time (data-t) and boards their travel time
+ * (data-travel), so the page script can update countdowns, fading and leave
+ * hints between polls — and hide trains once they've left, even offline.
+ */
+function renderDeparture(departure: Departure, status: DepartureStatus, showArrival: boolean): string {
   const delayed = departure.delayMinutes >= 1 && !departure.cancelled;
-  const rowClass = departure.cancelled
-    ? "dep is-cancelled"
-    : departure.isRailReplacement
-      ? "dep is-replacement"
-      : delayed
-        ? "dep is-delayed"
-        : "dep";
+  const rowClass = `${
+    departure.cancelled
+      ? "dep is-cancelled"
+      : departure.isRailReplacement
+        ? "dep is-replacement"
+        : delayed
+          ? "dep is-delayed"
+          : "dep"
+  }${status.missed ? " is-missed" : ""}`;
+  const rowData = ` data-t="${Date.parse(departure.expectedTime)}"${departure.cancelled ? ' data-cancelled="1"' : ""}`;
   const rowStyle =
     departure.cancelled || departure.isRailReplacement
       ? ""
@@ -106,9 +124,12 @@ function renderDeparture(departure: Departure, showArrival: boolean): string {
   const nowClass = departure.cancelled ? "now cancelled" : delayed ? "now late" : "now";
   const time = `${
     delayed ? `<span class="was">${formatDepartureTime(departure.aimedTime)}</span>` : ""
-  }<span class="${nowClass}">${formatDepartureTime(departure.expectedTime)}</span>`;
+  }<span class="${nowClass}">${formatDepartureTime(departure.expectedTime)}</span><span class="countdown">${
+    departure.cancelled ? "" : escapeHtml(status.countdown ?? "")
+  }</span>`;
 
   const tags = [
+    `<span class="tag leave">${escapeHtml(status.leaveHint ?? "")}</span>`,
     departure.cancelled ? '<span class="tag cancelled">Innstilt</span>' : "",
     departure.isRailReplacement ? '<span class="tag replacement">Buss for tog</span>' : "",
     delayed ? `<span class="tag delayed">Forsinket +${departure.delayMinutes} min</span>` : "",
@@ -127,7 +148,7 @@ function renderDeparture(departure: Departure, showArrival: boolean): string {
     ? `<small>Spor</small><strong>${escapeHtml(departure.platform)}</strong>`
     : "—";
 
-  return `<li class="${rowClass}"${rowStyle}>
+  return `<li class="${rowClass}"${rowStyle}${rowData}>
 <span class="${badgeClass}"${badgeStyle}>${escapeHtml(departure.line)}</span>
 <div class="time">${time}</div>
 <div class="info"><p class="dest${departure.cancelled ? " cancelled" : ""}">${escapeHtml(departure.destination)}</p>${arrival}${
@@ -154,7 +175,14 @@ function renderStation(station: StationBoardData, direction: Direction, now: Dat
       : `<p class="trip"><span>${tripLabel}</span></p>`;
   const showArrival = direction === "south";
 
-  const departures = station.departures;
+  // Same rules as the main app: hide trains once they've left, fade the ones you can't make.
+  const travel = travelToBoarding(direction, station.id);
+  const departures = upcomingDepartures(station.departures, now);
+  const statuses = departureStatuses(departures, now, travel);
+  const statusOf = new Map(departures.map((departure, index) => [departure, statuses[index]]));
+  const travelData = travel
+    ? ` data-travel="${travel.minutes * 60_000}" data-verb="${escapeHtml(TRAVEL_VERBS[travel.mode])}"`
+    : "";
   const list =
     departures.length === 0
       ? `<p class="empty">${escapeHtml(emptyBoardText(direction, shortName))}</p>`
@@ -169,11 +197,13 @@ function renderStation(station: StationBoardData, direction: Direction, now: Dat
                     : ""
                 }</span><span class="rule"></span></div>`
               : "";
-            return `${heading}<ul class="deps">${section.items.map((departure) => renderDeparture(departure, showArrival)).join("")}</ul>`;
+            return `${heading}<ul class="deps">${section.items
+              .map((departure) => renderDeparture(departure, statusOf.get(departure)!, showArrival))
+              .join("")}</ul>`;
           })
           .join("");
 
-  return `<section class="board">
+  return `<section class="board"${travelData}>
 <div class="board-head"><h2>${escapeHtml(stationHeading(direction, shortName))}</h2>${trip}</div>
 ${station.situations.map(renderSituation).join("")}
 <div class="list">${list}</div>
@@ -280,6 +310,9 @@ export function renderTavlePage({
     pollUrl: tavleHref(options, "&format=json"),
     pollMs: POLL_INTERVAL_MS,
     reloadMs: FULL_RELOAD_MS,
+    departedAfterMs: DEPARTED_AFTER_MS,
+    countdownWithinMinutes: COUNTDOWN_WITHIN_MINUTES,
+    staleAfterMs: STALE_AFTER_MS,
   };
   const configJson = JSON.stringify(config).replace(/</g, "\\u003c");
 
@@ -308,6 +341,7 @@ export function renderTavlePage({
 </div>
 <div class="status" id="status">${status}</div>
 </header>
+<p class="stale" id="stale" role="alert"></p>
 <main class="${boardsClassName}" id="boards">${boards}</main>
 ${renderFooter(options)}
 </div>

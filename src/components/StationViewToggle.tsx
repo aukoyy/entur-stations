@@ -6,6 +6,7 @@ import {
   type StationView,
 } from "@/lib/stations";
 import { SegmentedToggle } from "./SegmentedToggle";
+import { notifySettingsChanged } from "./useStoredSetting";
 
 const OPTIONS: Array<{ value: StationView; label: string }> = [
   { value: "all", label: "Begge" },
@@ -23,6 +24,7 @@ export function persistStationView(view: StationView) {
   const url = new URL(window.location.href);
   url.searchParams.set("stasjon", stationViewSlug(view));
   window.history.replaceState(null, "", url);
+  notifySettingsChanged();
 }
 
 export function readStoredStationView(): StationView {

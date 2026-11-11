@@ -12,10 +12,13 @@ Infoscreen for **regiontog og regionekspress** between Kråkstad/Ski and Oslo S,
 - Line colours from Entur (regiontog red, regionekspress cyan)
 - Delays, cancellations, rail-replacement buses, and Entur situation messages
 - Day break (**I morgen**) and a **Morgen** heading after the overnight gap
+- A countdown (*om 7 min*) under each departure in the next hour
+- When to leave: the first train you can still make gets a green **Kjør om 3'** / **Gå om 3'** (' = minutes), from the travel time to where you board (going north: by car from home, 4 min to Kråkstad and 9 min to Ski; going south: 12 min on foot from work to Oslo S). Trains you can no longer make are faded, not removed. Travel times live in `src/lib/stations.ts`
+- A train is only removed a minute after its expected departure, worked out in the browser so it also happens when updates fail. After 5 minutes without an update, a red **Utdatert** warning shows
 - Station picker: Begge, Kråkstad, or Ski (one station fills the width). With Begge, the stations sit side by side on screens from 740px wide (iPads in portrait too) and on landscape screens from 560px (phones turned sideways); narrower screens stack them
 - Theme: Auto (OS light/dark), Lys, or Mørk
 
-The board polls `/api/departures` every 30 seconds.
+The board polls `/api/departures` every 30 seconds. The server caches the Entur response for 15 seconds, shared by every screen and `/tavle`, so several open screens don't each pull ~1 MB from Entur. On a phone, **Add to Home Screen** opens it full screen like an app.
 
 ## URL presets
 
@@ -36,6 +39,7 @@ The main app needs Safari 16.4+ (Next.js 16, React 19, Tailwind 4), so on older 
 - The whole page scrolls. Narrow screens stack the stations; from 740px wide, or landscape from 560px (same rule as the main app), they sit side by side
 - The station/theme links sit at the bottom of the page, after the last train
 - Scroll position is kept across polls
+- Same countdown, leave hints, fading and Utdatert warning as the main app; the page script updates them every 10 seconds, also when offline
 - Reloads the full page every 6 hours (only right after a successful poll) to pick up new deploys; this also scrolls back to the top
 - Same `retning`, `stasjon` and `tema` params as above; small links in the footer switch between them. No location lookup here: without `retning` it's Nord
 - `tema=auto` is time-based here, since iOS 12 has no dark mode: dark from 21:00 to 06:00 Oslo time
@@ -70,6 +74,7 @@ The default in code is `aukoyy-entur-stations` if the env var is unset. Use the 
 | `npm run build` | Production build           |
 | `npm start`     | Serve the production build |
 | `npm run lint`  | ESLint                     |
+| `npm test`      | Vitest (Entur mapping and departure rules) |
 
 ## Stack
 

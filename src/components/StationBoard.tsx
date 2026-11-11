@@ -1,5 +1,12 @@
-import { emptyBoardText, osloTripLabel, stationHeading, type Direction } from "@/lib/direction";
-import type { StationBoardData } from "@/lib/entur";
+import { departureStatuses, upcomingDepartures, type DepartureStatus } from "@/lib/departure-status";
+import {
+  emptyBoardText,
+  osloTripLabel,
+  stationHeading,
+  travelToBoarding,
+  type Direction,
+} from "@/lib/direction";
+import type { Departure, StationBoardData } from "@/lib/entur";
 import { stationConfig } from "@/lib/stations";
 import { formatDurationMinutes, groupByOsloDay } from "@/lib/time";
 import { DepartureRow } from "./DepartureRow";
@@ -11,7 +18,13 @@ type StationBoardProps = {
 };
 
 export function StationBoard({ station, direction, now }: StationBoardProps) {
-  const sections = groupByOsloDay(station.departures, now);
+  // Trains disappear only once they've left; ones you can't make any more stay, faded.
+  const departures = upcomingDepartures(station.departures, now);
+  const statuses = departureStatuses(departures, now, travelToBoarding(direction, station.id));
+  const statusOf = new Map<Departure, DepartureStatus>(
+    departures.map((departure, index) => [departure, statuses[index]]),
+  );
+  const sections = groupByOsloDay(departures, now);
   const config = stationConfig(station.id);
   const minutesToOsloS = config?.minutesToOsloS;
   const shortName = config?.shortName ?? station.name;
@@ -57,7 +70,7 @@ export function StationBoard({ station, direction, now }: StationBoardProps) {
         </div>
       ) : null}
 
-      {station.departures.length === 0 ? (
+      {departures.length === 0 ? (
         <p className="rounded-lg bg-surface px-4 py-6 text-lg text-muted">
           {emptyBoardText(direction, shortName)}
         </p>
@@ -86,6 +99,7 @@ export function StationBoard({ station, direction, now }: StationBoardProps) {
                   <DepartureRow
                     key={`${departure.id}-${departure.aimedTime}`}
                     departure={departure}
+                    status={statusOf.get(departure)}
                     showArrival={direction === "south"}
                   />
                 ))}
