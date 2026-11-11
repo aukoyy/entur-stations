@@ -19,7 +19,7 @@ export function StationBoard({ station, direction, now }: StationBoardProps) {
   return (
     <section className="flex min-h-0 flex-1 flex-col">
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-        <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl lg:text-4xl">
+        <h2 className="text-2xl font-semibold tracking-tight text-foreground lg:text-4xl">
           {stationHeading(direction, shortName)}
         </h2>
         {minutesToOsloS != null ? (

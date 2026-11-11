@@ -155,7 +155,7 @@ body {
   margin-bottom: 12px;
 }
 
-.board-head h2 { margin: 0 16px 0 0; font-size: 30px; font-weight: 600; letter-spacing: -0.01em; }
+.board-head h2 { margin: 0 16px 0 0; font-size: 24px; font-weight: 600; letter-spacing: -0.01em; }
 .trip { margin: 0; color: var(--muted); }
 .trip strong { margin-right: 8px; font-size: 24px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--foreground); }
 .trip span { font-size: 13px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--subtle); }
