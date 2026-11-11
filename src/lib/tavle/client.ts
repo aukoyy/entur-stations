@@ -6,9 +6,7 @@
  * - Polls the JSON variant of the page and swaps in new markup. On failure it
  *   keeps the last board on screen, so a Wi-Fi blip never leaves a browser
  *   error page behind (which a plain meta refresh would).
- * - Keeps each station list's scroll position across polls (landscape, where
- *   lists scroll on their own; in portrait the page scrolls and the swap
- *   leaves the page position alone).
+ * - Swapping the board leaves the page's scroll position alone.
  * - Reloads the whole page every few hours, but only right after a successful
  *   poll, to pick up new deploys. The reload also scrolls back to the top, so
  *   a board someone scrolled down doesn't stay that way.
@@ -37,20 +35,6 @@ export const TAVLE_CLIENT_SCRIPT = `
       '<p class="small">Viser sist hentede avganger</p>';
   }
 
-  function lists() { return boards.querySelectorAll(".list"); }
-
-  function scrollPositions() {
-    var current = lists();
-    var tops = [];
-    for (var i = 0; i < current.length; i++) tops.push(current[i].scrollTop);
-    return tops;
-  }
-
-  function restoreScroll(tops) {
-    var current = lists();
-    for (var i = 0; i < current.length && i < tops.length; i++) current[i].scrollTop = tops[i];
-  }
-
   function poll() {
     var xhr = new XMLHttpRequest();
     xhr.open("GET", config.pollUrl + "&t=" + new Date().getTime(), true);
@@ -65,18 +49,16 @@ export const TAVLE_CLIENT_SCRIPT = `
       }
       applyTheme(data.theme);
       status.innerHTML = data.status;
-      var tops = scrollPositions();
       boards.className = data.boardsClass;
       boards.innerHTML = data.boards;
-      restoreScroll(tops);
     };
     xhr.onerror = showFailure;
     xhr.ontimeout = showFailure;
     xhr.send();
   }
 
+  // Start at the top after a reload instead of where the page was scrolled to.
   if ("scrollRestoration" in window.history) window.history.scrollRestoration = "manual";
-  restoreScroll([0, 0]);
 
   tick();
   window.setInterval(tick, 1000);

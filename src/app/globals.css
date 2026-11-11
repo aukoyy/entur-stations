@@ -2,6 +2,17 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/*
+ * Wide enough to show Kråkstad and Ski side by side: any screen from 740px
+ * (iPads in portrait too), or a landscape screen from 560px (phones turned
+ * sideways). Keep in sync with the same media query in src/lib/tavle/styles.ts.
+ */
+@custom-variant two-col {
+  @media (min-width: 740px), (orientation: landscape) and (min-width: 560px) {
+    @slot;
+  }
+}
+
 :root {
   color-scheme: light;
   --background: #e6e8ed;

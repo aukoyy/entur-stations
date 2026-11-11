@@ -12,7 +12,7 @@ Infoscreen for **regiontog og regionekspress** between Kråkstad/Ski and Oslo S,
 - Line colours from Entur (regiontog red, regionekspress cyan)
 - Delays, cancellations, rail-replacement buses, and Entur situation messages
 - Day break (**I morgen**) and a **Morgen** heading after the overnight gap
-- Station picker: Begge, Kråkstad, or Ski (one station fills the width)
+- Station picker: Begge, Kråkstad, or Ski (one station fills the width). With Begge, the stations sit side by side on screens from 740px wide (iPads in portrait too) and on landscape screens from 560px (phones turned sideways); narrower screens stack them
 - Theme: Auto (OS light/dark), Lys, or Mørk
 
 The board polls `/api/departures` every 30 seconds.
@@ -33,7 +33,8 @@ The main app needs Safari 16.4+ (Next.js 16, React 19, Tailwind 4), so on older 
 
 - Plain server-rendered HTML with hand-written CSS and a small ES5 script, without React, Tailwind or Next.js client JavaScript
 - Polls `/tavle?…&format=json` every 30 seconds and swaps in the new board; if a poll fails, the last board stays on screen
-- Portrait: stations stack and the whole page scrolls, with the footer links pinned to the bottom. Landscape: stations side by side, each list scrolls on its own
+- The whole page scrolls. Narrow screens stack the stations; from 740px wide, or landscape from 560px (same rule as the main app), they sit side by side
+- The station/theme links sit at the bottom of the page, after the last train
 - Scroll position is kept across polls
 - Reloads the full page every 6 hours (only right after a successful poll) to pick up new deploys; this also scrolls back to the top
 - Same `retning`, `stasjon` and `tema` params as above; small links in the footer switch between them. No location lookup here: without `retning` it's Nord

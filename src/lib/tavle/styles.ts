@@ -64,9 +64,9 @@ body {
 }
 
 /*
- * Portrait / narrow (default): stations stack and the whole page scrolls,
- * like the main app. Landscape / wide (min-width: 900px, further down): the
- * page fits the screen and each station list scrolls on its own.
+ * The whole page scrolls, like the main app. Narrow screens (e.g. phones in
+ * portrait) stack the stations; wide ones (from 740px, or landscape from
+ * 560px; see the media query further down) put them side by side.
  */
 .page {
   display: -webkit-box; display: -webkit-flex; display: flex;
@@ -81,6 +81,15 @@ body {
   -webkit-align-items: flex-end; align-items: flex-end;
   -webkit-flex-shrink: 0; flex-shrink: 0;
   margin-bottom: 16px;
+}
+
+/* Narrow screens stack the header with the clock at the bottom, like the main app. */
+@media (max-width: 639px) {
+  .top {
+    -webkit-flex-direction: column-reverse; flex-direction: column-reverse;
+    -webkit-align-items: flex-start; align-items: flex-start;
+  }
+  .top .status { margin-bottom: 12px; text-align: left; }
 }
 
 .eyebrow {
@@ -127,18 +136,14 @@ body {
 
 .boards-two .board + .board { margin-top: 28px; }
 
-@media (min-width: 900px) {
-  .page { height: 100%; }
-  .boards { -webkit-flex: 1 1 auto; flex: 1 1 auto; min-height: 0; }
-  .boards-two { -webkit-flex-direction: row; flex-direction: row; }
-  .boards-two .board + .board { margin-top: 0; margin-left: 32px; }
-  .board { -webkit-flex: 1 1 0%; flex: 1 1 0%; min-height: 0; overflow: hidden; }
-  .list {
-    -webkit-flex: 1 1 auto; flex: 1 1 auto;
-    min-height: 0;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+/* Same breakpoint as the two-col variant in src/app/globals.css. */
+@media (min-width: 740px), (orientation: landscape) and (min-width: 560px) {
+  .boards-two {
+    -webkit-flex-direction: row; flex-direction: row;
+    -webkit-align-items: flex-start; align-items: flex-start;
   }
+  .boards-two .board { -webkit-flex: 1 1 0%; flex: 1 1 0%; }
+  .boards-two .board + .board { margin-top: 0; margin-left: 32px; }
 }
 
 .board-head {
@@ -234,15 +239,12 @@ body {
 .empty { background: var(--surface); color: var(--muted); }
 .error-box { background: var(--danger-bg); color: var(--danger); }
 
-/* Sticky so the station/theme links stay in reach when the page scrolls in portrait. */
+/* At the bottom of the page, after the last train (not pinned to the screen). */
 .bottom {
-  position: -webkit-sticky; position: sticky;
-  bottom: 0;
   -webkit-flex-shrink: 0; flex-shrink: 0;
   margin-top: 10px;
   padding: 8px 0 10px;
   border-top: 1px solid var(--line);
-  background: var(--background);
   font-size: 14px;
 }
 .bottom .group { display: inline-block; margin-right: 24px; }

@@ -114,7 +114,7 @@ export function Infoscreen() {
         south ? "border-south" : "border-transparent",
       ].join(" ")}
     >
-      <header className="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
+      <header className="mb-4 flex flex-col-reverse gap-3 sm:mb-6 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
         <div>
           <p className="text-sm font-medium uppercase tracking-[0.2em] text-muted">
             Avgangstavle
@@ -165,7 +165,7 @@ export function Infoscreen() {
         <div
           className={[
             "grid min-h-0 flex-1 grid-cols-1 gap-8 lg:gap-10",
-            multiColumn ? "lg:grid-cols-2" : "",
+            multiColumn ? "two-col:grid-cols-2" : "",
           ].join(" ")}
         >
           {visibleStations.map((station) => (
@@ -185,7 +185,7 @@ export function Infoscreen() {
         <div
           className={[
             "grid flex-1 grid-cols-1 gap-8",
-            multiColumn ? "lg:grid-cols-2" : "",
+            multiColumn ? "two-col:grid-cols-2" : "",
           ].join(" ")}
         >
           {visibleConfigs.map((station) => (
