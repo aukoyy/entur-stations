@@ -25,7 +25,7 @@ export const STATIONS: StationConfig[] = [
     shortName: "Kråkstad",
     slug: "krakstad",
     minutesToOsloS: 20,
-    fromHome: { minutes: 4, mode: "drive" },
+    fromHome: { minutes: 6, mode: "drive" },
     position: { latitude: 59.683362, longitude: 10.890785 },
   },
   {

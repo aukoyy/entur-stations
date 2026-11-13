@@ -13,7 +13,7 @@ Infoscreen for **regiontog og regionekspress** between Kråkstad/Ski and Oslo S,
 - Delays, cancellations, rail-replacement buses, and Entur situation messages
 - Day break (**I morgen**) and a **Morgen** heading after the overnight gap
 - A countdown (*om 7 min*) under each departure in the next hour
-- When to leave: the first train you can still make gets a green **Kjør om 3'** / **Gå om 3'** (' = minutes), from the travel time to where you board (going north: by car from home, 4 min to Kråkstad and 9 min to Ski; going south: 12 min on foot from work to Oslo S). Trains you can no longer make are faded, not removed. Travel times live in `src/lib/stations.ts`
+- When to leave: the first train you can still make gets a green **Kjør om 3'** / **Gå om 3'** (' = minutes), from the travel time to where you board (going north: by car from home, 6 min to Kråkstad and 9 min to Ski; going south: 12 min on foot from work to Oslo S). Trains you can no longer make are faded, not removed. Travel times live in `src/lib/stations.ts`
 - A train is only removed a minute after its expected departure, worked out in the browser so it also happens when updates fail. After 5 minutes without an update, a red **Utdatert** warning shows
 - Station picker: Begge, Kråkstad, or Ski (one station fills the width). With Begge, the stations sit side by side on screens from 740px wide (iPads in portrait too) and on landscape screens from 560px (phones turned sideways); narrower screens stack them
 - Theme: Auto (OS light/dark), Lys, or Mørk
