@@ -45,7 +45,7 @@ export const OSLO_S_STOP_PLACE_ID = "NSR:StopPlace:59872";
 export const OSLO_S_POSITION: GeoPosition = { latitude: 59.910357, longitude: 10.753051 };
 
 export const ENTUR_DEPARTURE_COUNT = 250;
-export const LOOKAHEAD_SECONDS = 86_400;
+export const LOOKAHEAD_SECONDS = 18 * 60 * 60;
 export const POLL_INTERVAL_MS = 30_000;
 export const STATION_VIEW_STORAGE_KEY = "entur-stations-view";
 

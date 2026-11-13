@@ -4,7 +4,7 @@ Infoscreen for **regiontog og regionekspress** between Kråkstad/Ski and Oslo S,
 
 ## What it shows
 
-- Next **R / RE** trains for about **24 hours** (local L-lines are hidden)
+- Next **R / RE** trains for about **18 hours** (local L-lines are hidden)
 - Direction: **Nord** (default), from Kråkstad/Ski to Oslo S, headed *Fra Kråkstad* / *Fra Ski*; or **Sør**, from Oslo S to Kråkstad/Ski, headed *Til Kråkstad* / *Til Ski*. Going south, each row shows the departure time and platform at Oslo S plus the arrival time at the station
 - South gets its own violet accent: a band across the top and the Sør toggle
 - The direction is picked from your location: closer to Oslo S than to Kråkstad/Ski means Sør, otherwise Nord. The position is only used in the browser. Tapping the toggle overrides it until the app has been in the background for 30 minutes; without location access it's Nord
@@ -16,7 +16,7 @@ Infoscreen for **regiontog og regionekspress** between Kråkstad/Ski and Oslo S,
 - When to leave: the first train you can still make gets a green **Kjør om 3'** / **Gå om 3'** (' = minutes), from the travel time to where you board (going north: by car from home, 6 min to Kråkstad and 9 min to Ski; going south: 12 min on foot from work to Oslo S). Trains you can no longer make are faded, not removed. Travel times live in `src/lib/stations.ts`
 - A train is only removed a minute after its expected departure, worked out in the browser so it also happens when updates fail. After 5 minutes without an update, a red **Utdatert** warning shows
 - Station picker: Begge, Kråkstad, or Ski (one station fills the width). With Begge, the stations sit side by side on screens from 740px wide (iPads in portrait too) and on landscape screens from 560px (phones turned sideways); narrower screens stack them
-- Theme: Auto (OS light/dark), Lys, or Mørk
+- Theme: Auto (dark from 21:00 to 06:00 Oslo time, the same on every device and on `/tavle`), Lys, or Mørk
 
 The board polls `/api/departures` every 30 seconds. The server caches the Entur response for 15 seconds, shared by every screen and `/tavle`, so several open screens don't each pull ~1 MB from Entur. On a phone, **Add to Home Screen** opens it full screen like an app.
 
@@ -36,13 +36,13 @@ The main app needs Safari 16.4+ (Next.js 16, React 19, Tailwind 4), so on older 
 
 - Plain server-rendered HTML with hand-written CSS and a small ES5 script, without React, Tailwind or Next.js client JavaScript
 - Polls `/tavle?…&format=json` every 30 seconds and swaps in the new board; if a poll fails, the last board stays on screen
-- Made to be read from a few metres away: one column with large rows (Begge stacks Kråkstad above Ski), and only as many trains as fit on the screen without scrolling, shared between the stations (at least one each). It refits as trains leave and when the screen rotates
+- Made to be read from a few metres away: one column with large rows, and the whole page scrolls. Begge shows Kråkstad first and Ski underneath
 - Per-train notes (e.g. *Færre spor: Oslo S*) are left out to keep rows readable; the tags (Innstilt, Forsinket, Buss for tog, Kjør/Gå om) and the station-level Avvik box stay
 - The station/theme links sit at the bottom of the page, after the last train
 - Same countdown, leave hints, fading and Utdatert warning as the main app; the page script updates them every 10 seconds, also when offline
 - Reloads the full page every 6 hours (only right after a successful poll) to pick up new deploys; this also scrolls back to the top
 - Same `retning`, `stasjon` and `tema` params as above; small links in the footer switch between them. No location lookup here: without `retning` it's Nord
-- `tema=auto` is time-based here, since iOS 12 has no dark mode: dark from 21:00 to 06:00 Oslo time
+- `tema=auto` follows the same 21:00–06:00 rule as the main app
 
 Example: `/tavle?stasjon=begge&tema=auto`. On the iPad, use **Share → Add to Home Screen** to run it full-screen without the browser bar.
 

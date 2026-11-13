@@ -38,7 +38,7 @@ export function DepartureRow({ departure, status, showArrival = false }: Departu
   return (
     <li
       className={[
-        "grid grid-cols-[auto_4.5rem_minmax(0,1fr)_auto] items-center gap-3 rounded-lg border-l-4 px-3 py-2.5 transition-opacity sm:gap-4 sm:px-4 sm:py-3",
+        "grid grid-cols-[4rem_4.5rem_minmax(0,1fr)_auto] items-center gap-3 rounded-lg border-l-4 px-3 py-2.5 transition-opacity sm:grid-cols-[4.5rem_4.5rem_minmax(0,1fr)_auto] sm:gap-4 sm:px-4 sm:py-3",
         // Too late to get to the station, but the train hasn't left yet.
         status?.missed ? "opacity-40" : "",
         departure.cancelled
@@ -56,7 +56,7 @@ export function DepartureRow({ departure, status, showArrival = false }: Departu
       }
     >
       <span
-        className={`inline-flex min-w-12 items-center justify-center rounded-md px-2 py-1 text-lg font-bold tabular-nums sm:min-w-14 sm:text-xl ${lineBadgeClass(departure)}`}
+        className={`inline-flex items-center justify-center rounded-md px-2 py-1 text-lg font-bold whitespace-nowrap tabular-nums sm:text-xl ${lineBadgeClass(departure)}`}
         style={lineBadgeStyle(departure)}
       >
         {departure.line}

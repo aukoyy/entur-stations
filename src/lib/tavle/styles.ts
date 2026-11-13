@@ -65,9 +65,8 @@ body {
 
 /*
  * Made to be read from a few metres away (an iPad on a hallway shelf): one
- * column, large rows, and the page script shows only as many trains as fit on
- * the screen (see fitToScreen in client.ts). Phone-width screens get smaller
- * sizes at the bottom of this file.
+ * column with large rows, and the whole page scrolls. Phone-width screens get
+ * smaller sizes at the bottom of this file.
  */
 .page {
   display: -webkit-box; display: -webkit-flex; display: flex;
@@ -184,7 +183,7 @@ body {
 
 .badge {
   -webkit-flex-shrink: 0; flex-shrink: 0;
-  min-width: 84px;
+  width: 108px;
   margin-right: 20px;
   padding: 6px 12px;
   border-radius: 8px;
@@ -192,6 +191,7 @@ body {
   font-size: 30px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 .badge.cancelled { background: #b91c1c; color: #fff; }
 .badge.replacement { background: #f59e0b; color: #09090b; }
@@ -269,7 +269,7 @@ body {
   .trip strong { font-size: 24px; }
   .trip span { font-size: 13px; }
   .dep { padding: 10px 12px; border-left-width: 4px; }
-  .badge { min-width: 52px; margin-right: 12px; padding: 4px 8px; font-size: 19px; }
+  .badge { width: 70px; margin-right: 12px; padding: 4px 8px; font-size: 19px; }
   .time { width: 76px; margin-right: 12px; }
   .time .now { font-size: 24px; }
   .time .countdown, .time .was { font-size: 13px; }

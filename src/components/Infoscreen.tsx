@@ -13,7 +13,7 @@ import {
   StationViewToggle,
 } from "./StationViewToggle";
 import { persistTheme, readStoredTheme, ThemeToggle } from "./ThemeToggle";
-import { applyTheme, type ThemePreference } from "@/lib/theme";
+import { isDarkHour, setDarkClass, type ThemePreference } from "@/lib/theme";
 import { useStoredSetting } from "./useStoredSetting";
 import { DirectionToggle } from "./DirectionToggle";
 import { useDirection } from "./useDirection";
@@ -63,13 +63,11 @@ export function Infoscreen() {
     persistTheme(next);
   }, []);
 
+  const autoDark = now ? isDarkHour(now) : null;
   useEffect(() => {
-    if (theme !== "auto") return;
-    const media = window.matchMedia("(prefers-color-scheme: dark)");
-    const onChange = () => applyTheme("auto");
-    media.addEventListener("change", onChange);
-    return () => media.removeEventListener("change", onChange);
-  }, [theme]);
+    if (theme !== "auto" || autoDark === null) return;
+    setDarkClass(autoDark);
+  }, [theme, autoDark]);
 
   useEffect(() => {
     const tick = () => setNow(new Date());

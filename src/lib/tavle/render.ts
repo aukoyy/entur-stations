@@ -29,13 +29,18 @@ import {
   stationViewSlug,
   type StationView,
 } from "@/lib/stations";
-import { parseThemePreference, THEME_QUERY_PARAM, themeSlug, type ThemePreference } from "@/lib/theme";
+import {
+  parseThemePreference,
+  resolvedTheme,
+  THEME_QUERY_PARAM,
+  themeSlug,
+  type ThemePreference,
+} from "@/lib/theme";
 import {
   formatClock,
   formatDepartureTime,
   formatDurationMinutes,
   groupByOsloDay,
-  osloHour,
 } from "@/lib/time";
 import { TAVLE_CLIENT_SCRIPT } from "./client";
 import { TAVLE_CSS } from "./styles";
@@ -43,9 +48,6 @@ import { TAVLE_CSS } from "./styles";
 export const TAVLE_PATH = "/tavle";
 const STATION_QUERY_PARAM = "stasjon";
 
-/** With tema=auto the board goes dark from DARK_FROM_HOUR until DARK_UNTIL_HOUR (Oslo time). */
-const DARK_FROM_HOUR = 21;
-const DARK_UNTIL_HOUR = 6;
 
 const FULL_RELOAD_MS = 6 * 60 * 60 * 1000;
 
@@ -68,12 +70,6 @@ export function parseTavleOptions(params: URLSearchParams): TavleOptions {
     theme: parseThemePreference(params.get(THEME_QUERY_PARAM)),
     direction: parseDirection(params.get(DIRECTION_QUERY_PARAM)),
   };
-}
-
-export function resolveTavleTheme(preference: ThemePreference, now: Date): "light" | "dark" {
-  if (preference !== "auto") return preference;
-  const hour = osloHour(now);
-  return hour >= DARK_FROM_HOUR || hour < DARK_UNTIL_HOUR ? "dark" : "light";
 }
 
 function escapeHtml(value: string): string {
@@ -239,7 +235,7 @@ export function renderTavleParts(
 ): TavleParts {
   const stations = visibleStations(payload, options);
   return {
-    theme: resolveTavleTheme(options.theme, now),
+    theme: resolvedTheme(options.theme, now),
     status: renderStatus(payload.fetchedAt, null),
     boards: stations.map((station) => renderStation(station, options.direction, now)).join(""),
     boardsClass: boardsClass(stations.length),
@@ -289,7 +285,7 @@ export function renderTavlePage({
   options: TavleOptions;
   now: Date;
 }): string {
-  const theme = resolveTavleTheme(options.theme, now);
+  const theme = resolvedTheme(options.theme, now);
   let status: string;
   let boards: string;
   let boardsClassName: string;

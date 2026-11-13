@@ -44,7 +44,7 @@ function ThemeIcon({ value }: { value: ThemePreference }) {
       </svg>
     );
   }
-  // Auto: half-filled circle (follows the device's light/dark setting).
+  // Auto: half-filled circle.
   return (
     <svg {...common}>
       <circle cx="12" cy="12" r="9" />

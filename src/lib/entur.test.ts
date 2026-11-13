@@ -62,14 +62,14 @@ function callAt(
   };
 }
 
-function boards(calls: Record<string, Call[]>) {
+function boards(calls: Record<string, Call[]>, now = NOW) {
   const stopPlaces: StopPlaces = Object.entries(calls).map(([id, estimatedCalls]) => ({
     id,
     name: id,
     estimatedCalls,
     situations: [],
   }));
-  return mapStopPlaces(stopPlaces, NOW);
+  return mapStopPlaces(stopPlaces, now);
 }
 
 const departuresOf = (list: ReturnType<typeof boards>["north"], stationId: string) =>
@@ -162,9 +162,23 @@ describe("mapStopPlaces", () => {
       { id: KRAKSTAD, depart: t("06:24", "2026-11-12") },
       { id: OSLO, arrive: t("06:44", "2026-11-12") },
     ]);
-    expect(departuresOf(boards({ [KRAKSTAD]: [tomorrow] }).north, KRAKSTAD)).toMatchObject([
+    const evening = new Date(t("21:00"));
+    expect(departuresOf(boards({ [KRAKSTAD]: [tomorrow] }, evening).north, KRAKSTAD)).toMatchObject([
       { aimedTime: t("06:24", "2026-11-12"), arrivalTime: t("06:44", "2026-11-12") },
     ]);
+  });
+
+  it("leaves out trains more than 18 hours ahead", () => {
+    const train = (depart: string) =>
+      callAt(KRAKSTAD, [
+        { id: KRAKSTAD, depart },
+        { id: OSLO, arrive: t("05:00", "2026-11-12") },
+      ]);
+    const north = departuresOf(
+      boards({ [KRAKSTAD]: [train(t("03:30", "2026-11-12")), train(t("03:31", "2026-11-12"))] }).north,
+      KRAKSTAD,
+    );
+    expect(north.map((departure) => departure.aimedTime)).toEqual([t("03:30", "2026-11-12")]);
   });
 
   it("leaves out local L trains", () => {

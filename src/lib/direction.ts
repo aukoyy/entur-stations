@@ -69,6 +69,6 @@ export function osloTripLabel(direction: Direction): string {
 
 export function emptyBoardText(direction: Direction, stationShortName: string): string {
   return direction === "south"
-    ? `Ingen tog fra Oslo S til ${stationShortName} det neste døgnet.`
-    : "Ingen tog mot Oslo S det neste døgnet.";
+    ? `Ingen tog fra Oslo S til ${stationShortName} de neste 18 timene.`
+    : "Ingen tog mot Oslo S de neste 18 timene.";
 }

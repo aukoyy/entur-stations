@@ -1,4 +1,10 @@
+import { osloHour } from "./time";
+
 export type ThemePreference = "auto" | "light" | "dark";
+
+/** With "auto" the board is dark from DARK_FROM_HOUR until DARK_UNTIL_HOUR, Oslo time. */
+const DARK_FROM_HOUR = 21;
+const DARK_UNTIL_HOUR = 6;
 
 export const THEME_STORAGE_KEY = "entur-stations-theme";
 export const THEME_QUERY_PARAM = "tema";
@@ -23,16 +29,23 @@ export function themeSlug(preference: ThemePreference): string {
   return "auto";
 }
 
-export function resolvedTheme(preference: ThemePreference): "light" | "dark" {
-  if (preference === "light") return "light";
-  if (preference === "dark") return "dark";
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+export function isDarkHour(date: Date): boolean {
+  const hour = osloHour(date);
+  return hour >= DARK_FROM_HOUR || hour < DARK_UNTIL_HOUR;
+}
+
+export function resolvedTheme(preference: ThemePreference, now = new Date()): "light" | "dark" {
+  if (preference !== "auto") return preference;
+  return isDarkHour(now) ? "dark" : "light";
+}
+
+export function setDarkClass(dark: boolean) {
+  document.documentElement.classList.toggle("dark", dark);
+  document.documentElement.style.colorScheme = dark ? "dark" : "light";
 }
 
 export function applyTheme(preference: ThemePreference) {
-  const dark = resolvedTheme(preference) === "dark";
-  document.documentElement.classList.toggle("dark", dark);
-  document.documentElement.style.colorScheme = dark ? "dark" : "light";
+  setDarkClass(resolvedTheme(preference) === "dark");
 }
 
 export function persistTheme(preference: ThemePreference) {
@@ -51,4 +64,4 @@ export function readStoredTheme(): ThemePreference {
   return parseThemePreference(window.localStorage.getItem(THEME_STORAGE_KEY));
 }
 
-export const THEME_BOOTSTRAP = `(function(){try{var k=${JSON.stringify(THEME_STORAGE_KEY)};var q=${JSON.stringify(THEME_QUERY_PARAM)};var p=new URLSearchParams(location.search).get(q);var s=p||localStorage.getItem(k)||"auto";if(s==="lys"||s==="dag")s="light";else if(s==="mork"||s==="mørk"||s==="kveld"||s==="natt")s="dark";var d=s==="dark"||(s!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",d);document.documentElement.style.colorScheme=d?"dark":"light";}catch(e){}})();`;
+export const THEME_BOOTSTRAP = `(function(){try{var k=${JSON.stringify(THEME_STORAGE_KEY)};var q=${JSON.stringify(THEME_QUERY_PARAM)};var p=new URLSearchParams(location.search).get(q);var s=p||localStorage.getItem(k)||"auto";if(s==="lys"||s==="dag")s="light";else if(s==="mork"||s==="mørk"||s==="kveld"||s==="natt")s="dark";var h=+new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Oslo",hour:"2-digit",hourCycle:"h23"}).format(new Date());var d=s==="dark"||(s!=="light"&&(h>=${DARK_FROM_HOUR}||h<${DARK_UNTIL_HOUR}));document.documentElement.classList.toggle("dark",d);document.documentElement.style.colorScheme=d?"dark":"light";}catch(e){}})();`;
