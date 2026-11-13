@@ -130,7 +130,11 @@ function renderDeparture(departure: Departure, status: DepartureStatus, showArri
 
   const tags = [
     `<span class="tag leave">${escapeHtml(status.leaveHint ?? "")}</span>`,
-    departure.cancelled ? '<span class="tag cancelled">Innstilt</span>' : "",
+    departure.cancelled
+      ? `<span class="tag cancelled">${
+          departure.cancelledFrom ? `Innstilt fra ${escapeHtml(departure.cancelledFrom)}` : "Innstilt"
+        }</span>`
+      : "",
     departure.isRailReplacement ? '<span class="tag replacement">Buss for tog</span>' : "",
     delayed ? `<span class="tag delayed">Forsinket +${departure.delayMinutes} min</span>` : "",
   ].join("");

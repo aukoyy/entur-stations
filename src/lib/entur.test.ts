@@ -10,6 +10,12 @@ const KRAKSTAD = "NSR:StopPlace:60016";
 const SKI = "NSR:StopPlace:60944";
 const OSLO = OSLO_S_STOP_PLACE_ID;
 const MYSEN = "NSR:StopPlace:mysen";
+const NAMES: Record<string, string> = {
+  [KRAKSTAD]: "Kråkstad stasjon",
+  [SKI]: "Ski stasjon",
+  [OSLO]: "Oslo S",
+  [MYSEN]: "Mysen stasjon",
+};
 
 const NOW = new Date("2026-11-11T09:30:00+01:00");
 const t = (hhmm: string, day = "2026-11-11") => `${day}T${hhmm}:00+01:00`;
@@ -49,7 +55,7 @@ function callAt(
         aimedDepartureTime: stop.depart ?? null,
         expectedDepartureTime: stop.expectedDepart ?? stop.depart ?? null,
         cancellation: stop.cancelled ?? false,
-        quay: { publicCode: stop.platform ?? null, stopPlace: { id: stop.id, name: stop.id, parent: null } },
+        quay: { publicCode: stop.platform ?? null, stopPlace: { id: stop.id, name: NAMES[stop.id], parent: null } },
       })),
     },
     situations: [],
@@ -110,7 +116,44 @@ describe("mapStopPlaces", () => {
       { id: KRAKSTAD, arrive: t("12:17"), depart: t("12:18") },
     ]);
     expect(departuresOf(boards({ [KRAKSTAD]: [south] }).south, KRAKSTAD)).toMatchObject([
-      { delayMinutes: 4, cancelled: true, expectedTime: t("12:04") },
+      { delayMinutes: 4, cancelled: true, cancelledFrom: null, expectedTime: t("12:04") },
+    ]);
+  });
+
+  it("marks a northbound train cancelled when Oslo S is cancelled, and says where it stops", () => {
+    // Like the R22 from Kråkstad that terminated at Ski: Oslo S is cancelled.
+    const journey: StopOnJourney[] = [
+      { id: MYSEN, depart: t("09:55") },
+      { id: KRAKSTAD, arrive: t("10:34"), depart: t("10:35") },
+      { id: SKI, arrive: t("10:41"), depart: t("10:44") },
+      { id: OSLO, arrive: t("10:56"), cancelled: true },
+    ];
+    const result = boards({ [KRAKSTAD]: [callAt(KRAKSTAD, journey)], [SKI]: [callAt(SKI, journey)] });
+
+    expect(departuresOf(result.north, KRAKSTAD)).toMatchObject([{ cancelled: true, cancelledFrom: "Ski" }]);
+    // From Ski it doesn't go anywhere towards Oslo, so it's just cancelled.
+    expect(departuresOf(result.north, SKI)).toMatchObject([{ cancelled: true, cancelledFrom: null }]);
+  });
+
+  it("doesn't count a skipped stop in between as a cancellation", () => {
+    const skipsSki = callAt(KRAKSTAD, [
+      { id: KRAKSTAD, depart: t("10:00") },
+      { id: SKI, arrive: t("10:06"), cancelled: true },
+      { id: OSLO, arrive: t("10:20") },
+    ]);
+    expect(departuresOf(boards({ [KRAKSTAD]: [skipsSki] }).north, KRAKSTAD)).toMatchObject([
+      { cancelled: false, cancelledFrom: null },
+    ]);
+  });
+
+  it("marks a southbound train cancelled when it stops short of the station", () => {
+    const shortOfKrakstad = callAt(KRAKSTAD, [
+      { id: OSLO, depart: t("11:00") },
+      { id: SKI, arrive: t("11:12"), depart: t("11:13") },
+      { id: KRAKSTAD, arrive: t("11:17"), depart: t("11:18"), cancelled: true },
+    ]);
+    expect(departuresOf(boards({ [KRAKSTAD]: [shortOfKrakstad] }).south, KRAKSTAD)).toMatchObject([
+      { cancelled: true, cancelledFrom: "Ski" },
     ]);
   });
 

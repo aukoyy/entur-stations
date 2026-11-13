@@ -193,6 +193,12 @@ export type Departure = {
   transportSubmode: string | null;
   isRailReplacement: boolean;
   platform: string | null;
+  /**
+   * Set when the train runs but stops short of where you get off, e.g. "Ski"
+   * when Oslo S is cancelled: shown as "Innstilt fra Ski". Null otherwise
+   * (including when you can't board it at all, which is just "Innstilt").
+   */
+  cancelledFrom: string | null;
   situations: Situation[];
 };
 
@@ -282,7 +288,14 @@ function arrivalTime(call: EnturJourneyCall): string | null {
   );
 }
 
-type Leg = { from: EnturJourneyCall; to: EnturJourneyCall };
+type Leg = {
+  from: EnturJourneyCall;
+  to: EnturJourneyCall;
+  /** The whole journey's stops, with the indexes of from and to in it. */
+  calls: EnturJourneyCall[];
+  fromIndex: number;
+  toIndex: number;
+};
 
 /**
  * The part of the journey you ride: station → Oslo S going north,
@@ -301,14 +314,51 @@ function legFor(
   const current = calls[currentIndex];
 
   if (direction === "north") {
-    const osloCall = calls.slice(currentIndex + 1).find((call) => isStopPlace(call, OSLO_S_STOP_PLACE_ID));
-    return osloCall ? { from: current, to: osloCall } : null;
+    for (let index = currentIndex + 1; index < calls.length; index++) {
+      if (isStopPlace(calls[index], OSLO_S_STOP_PLACE_ID)) {
+        return { from: current, to: calls[index], calls, fromIndex: currentIndex, toIndex: index };
+      }
+    }
+    return null;
   }
 
   for (let index = currentIndex - 1; index >= 0; index--) {
-    if (isStopPlace(calls[index], OSLO_S_STOP_PLACE_ID)) return { from: calls[index], to: current };
+    if (isStopPlace(calls[index], OSLO_S_STOP_PLACE_ID)) {
+      return { from: calls[index], to: current, calls, fromIndex: index, toIndex: currentIndex };
+    }
   }
   return null;
+}
+
+/** "Ski stasjon" → "Ski". */
+function stopShortName(call: EnturJourneyCall): string | null {
+  const stop = call.quay?.stopPlace;
+  const name = stop?.parent?.name ?? stop?.name;
+  return name ? name.replace(/ stasjon$/i, "") : null;
+}
+
+/**
+ * Whether the part of the trip you ride is cancelled. Only its ends matter: a
+ * train that just skips a stop in between still gets you there. When the
+ * train runs but stops short of where you get off (say Oslo S is cancelled),
+ * cancelledFrom is the last stop it still serves before that ("Ski").
+ */
+function legCancellation(
+  leg: Leg,
+  stationCallCancelled: boolean,
+  direction: Direction,
+): { cancelled: boolean; cancelledFrom: string | null } {
+  const boardingCancelled = Boolean(leg.from.cancellation) || (direction === "north" && stationCallCancelled);
+  const alightingCancelled = Boolean(leg.to.cancellation) || (direction === "south" && stationCallCancelled);
+  if (boardingCancelled) return { cancelled: true, cancelledFrom: null };
+  if (!alightingCancelled) return { cancelled: false, cancelledFrom: null };
+
+  let lastServed = leg.toIndex - 1;
+  while (lastServed > leg.fromIndex && leg.calls[lastServed].cancellation) lastServed--;
+  return {
+    cancelled: true,
+    cancelledFrom: lastServed > leg.fromIndex ? stopShortName(leg.calls[lastServed]) : null,
+  };
 }
 
 function isTrainOrReplacement(call: EnturEstimatedCall): boolean {
@@ -342,15 +392,14 @@ function mapDeparture(
       ? {
           aimedTime: stationAimedTime,
           expectedTime: call.expectedDepartureTime ?? stationAimedTime,
-          cancelled: Boolean(call.cancellation),
           platform: call.quay?.publicCode ?? null,
         }
       : {
           aimedTime: leg.from.aimedDepartureTime ?? null,
           expectedTime: leg.from.expectedDepartureTime ?? leg.from.aimedDepartureTime ?? null,
-          cancelled: Boolean(call.cancellation || leg.from.cancellation),
           platform: leg.from.quay?.publicCode ?? null,
         };
+  const { cancelled, cancelledFrom } = legCancellation(leg, Boolean(call.cancellation), direction);
   if (!boarding.aimedTime || !boarding.expectedTime) return null;
 
   const line = call.serviceJourney?.line;
@@ -364,7 +413,8 @@ function mapDeparture(
     expectedTime: boarding.expectedTime,
     arrivalTime: arrivalTime(leg.to),
     delayMinutes: delayMinutes(boarding.aimedTime, boarding.expectedTime),
-    cancelled: boarding.cancelled,
+    cancelled,
+    cancelledFrom,
     realtime: Boolean(call.realtime),
     destination: call.destinationDisplay?.frontText ?? "Ukjent destinasjon",
     line: publicCode,

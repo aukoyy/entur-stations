@@ -105,7 +105,9 @@ export function DepartureRow({ departure, status, showArrival = false }: Departu
               </span>
             ) : null}
             {departure.cancelled ? (
-              <span className="rounded bg-red-600 px-1.5 py-0.5 text-white">Innstilt</span>
+              <span className="whitespace-nowrap rounded bg-red-600 px-1.5 py-0.5 text-white">
+                {departure.cancelledFrom ? `Innstilt fra ${departure.cancelledFrom}` : "Innstilt"}
+              </span>
             ) : null}
             {departure.isRailReplacement ? (
               <span className="rounded bg-amber-400 px-1.5 py-0.5 text-zinc-950">

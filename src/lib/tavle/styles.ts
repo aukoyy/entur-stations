@@ -229,6 +229,7 @@ body {
 
 .tags { margin-top: 3px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
 .tag { display: inline-block; margin-right: 6px; padding: 1px 6px; border-radius: 4px; }
+.tag.cancelled { white-space: nowrap; }
 .tag.cancelled { background: #dc2626; color: #fff; }
 .tag.replacement { background: #fbbf24; color: #09090b; }
 .tag.leave { background: #059669; color: #fff; white-space: nowrap; }
