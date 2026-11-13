@@ -12,6 +12,8 @@
  *   too late to get there, the leave hint on the first train you can make,
  *   and hidden once the train has left. Same rules as
  *   src/lib/departure-status.ts; keep them in sync.
+ * - Shows only as many trains as fit on the screen without scrolling, taking
+ *   turns between the stations (at least one each), and again on rotation.
  * - Shows an "Utdatert" warning when there has been no update for a while.
  * - Reloads the whole page every few hours, but only right after a successful
  *   poll, to pick up new deploys. The reload also scrolls back to the top, so
@@ -53,23 +55,72 @@ export const TAVLE_CLIENT_SCRIPT = `
     if (element && element.textContent !== text) element.textContent = text;
   }
 
+  function pageOverflows() {
+    return document.documentElement.scrollHeight > window.innerHeight + 1;
+  }
+
+  // A day group ("I morgen" heading + its trains) is hidden when none of its trains show.
+  function updateSection(row) {
+    var section = row.parentNode && row.parentNode.parentNode;
+    if (!section || section.className !== "section") return;
+    var rows = section.querySelectorAll(".dep");
+    var anyShown = false;
+    for (var i = 0; i < rows.length; i++) {
+      if (rows[i].style.display !== "none") { anyShown = true; break; }
+    }
+    section.style.display = anyShown ? "" : "none";
+  }
+
+  function setShown(row, shown) {
+    row.style.display = shown ? "" : "none";
+    updateSection(row);
+  }
+
+  // candidates[b] = the trains on board b that haven't left, in order.
+  function fitToScreen(candidates) {
+    var b, i;
+    for (b = 0; b < candidates.length; b++) {
+      for (i = 0; i < candidates[b].length; i++) setShown(candidates[b][i], false);
+    }
+    var shown = [];
+    for (b = 0; b < candidates.length; b++) shown.push(0);
+    while (true) {
+      var pick = -1;
+      for (b = 0; b < candidates.length; b++) {
+        if (shown[b] < candidates[b].length && (pick < 0 || shown[b] < shown[pick])) pick = b;
+      }
+      if (pick < 0) return;
+      var row = candidates[pick][shown[pick]];
+      setShown(row, true);
+      if (shown[pick] > 0 && pageOverflows()) {
+        setShown(row, false);
+        return;
+      }
+      shown[pick]++;
+    }
+  }
+
   function refresh() {
     var now = new Date().getTime();
     var boardList = boards.querySelectorAll(".board");
+    var candidates = [];
     for (var b = 0; b < boardList.length; b++) {
       var board = boardList[b];
       var travelAttr = board.getAttribute("data-travel");
       var travel = travelAttr ? Number(travelAttr) : null;
       var verb = board.getAttribute("data-verb") || "";
       var hintGiven = false;
+      var upcoming = [];
+      candidates.push(upcoming);
       var rows = board.querySelectorAll(".dep");
       for (var r = 0; r < rows.length; r++) {
         var row = rows[r];
         var msUntil = Number(row.getAttribute("data-t")) - now;
         if (-msUntil > config.departedAfterMs) {
-          row.style.display = "none";
+          setShown(row, false);
           continue;
         }
+        upcoming.push(row);
         var cancelled = row.getAttribute("data-cancelled") === "1";
         var missed = travel !== null && !cancelled && msUntil < travel;
         setClass(row, "is-missed", missed);
@@ -87,12 +138,14 @@ export const TAVLE_CLIENT_SCRIPT = `
       }
     }
 
+    // The warning takes up space, so set it before fitting the trains.
     setText(
       stale,
       now - lastUpdate > config.staleAfterMs
         ? "Utdatert: sist oppdatert " + hhmm(new Date(lastUpdate)) + ". Avgangene kan ha endret seg."
         : ""
     );
+    fitToScreen(candidates);
   }
 
   function showFailure() {
@@ -132,6 +185,8 @@ export const TAVLE_CLIENT_SCRIPT = `
   refresh();
   window.setInterval(tick, 1000);
   window.setInterval(refresh, 10000);
+  window.addEventListener("resize", refresh);
+  window.addEventListener("orientationchange", refresh);
   window.setInterval(poll, config.pollMs);
 })();
 `;

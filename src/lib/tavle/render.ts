@@ -144,9 +144,9 @@ function renderDeparture(departure: Departure, status: DepartureStatus, showArri
       ? `<p class="arrival">Ankomst ${formatDepartureTime(departure.arrivalTime)}</p>`
       : "";
 
-  const notes = departure.situations
-    .map((situation) => `<p class="note">${escapeHtml(situation.summary)}</p>`)
-    .join("");
+  // Per-train situation notes ("Færre spor: Oslo S" and the like) are left out
+  // here: they repeat on most rows and are too small to read from a distance.
+  // The station-level Avvik box and the tags carry what matters.
 
   const platform = departure.platform
     ? `<small>Spor</small><strong>${escapeHtml(departure.platform)}</strong>`
@@ -157,7 +157,7 @@ function renderDeparture(departure: Departure, status: DepartureStatus, showArri
 <div class="time">${time}</div>
 <div class="info"><p class="dest${departure.cancelled ? " cancelled" : ""}">${escapeHtml(departure.destination)}</p>${arrival}${
     tags ? `<div class="tags">${tags}</div>` : ""
-  }${notes}</div>
+  }</div>
 <span class="platform">${platform}</span>
 </li>`;
 }
@@ -201,9 +201,9 @@ function renderStation(station: StationBoardData, direction: Direction, now: Dat
                     : ""
                 }</span><span class="rule"></span></div>`
               : "";
-            return `${heading}<ul class="deps">${section.items
+            return `<div class="section">${heading}<ul class="deps">${section.items
               .map((departure) => renderDeparture(departure, statusOf.get(departure)!, showArrival))
-              .join("")}</ul>`;
+              .join("")}</ul></div>`;
           })
           .join("");
 

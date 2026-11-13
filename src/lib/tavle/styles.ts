@@ -64,15 +64,16 @@ body {
 }
 
 /*
- * The whole page scrolls, like the main app. Narrow screens (e.g. phones in
- * portrait) stack the stations; wide ones (from 740px, or landscape from
- * 560px; see the media query further down) put them side by side.
+ * Made to be read from a few metres away (an iPad on a hallway shelf): one
+ * column, large rows, and the page script shows only as many trains as fit on
+ * the screen (see fitToScreen in client.ts). Phone-width screens get smaller
+ * sizes at the bottom of this file.
  */
 .page {
   display: -webkit-box; display: -webkit-flex; display: flex;
   -webkit-flex-direction: column; flex-direction: column;
   min-height: 100%;
-  padding: 16px 20px 0;
+  padding: 18px 24px 0;
 }
 
 .top {
@@ -80,21 +81,12 @@ body {
   -webkit-justify-content: space-between; justify-content: space-between;
   -webkit-align-items: flex-end; align-items: flex-end;
   -webkit-flex-shrink: 0; flex-shrink: 0;
-  margin-bottom: 16px;
-}
-
-/* Narrow screens stack the header with the clock at the bottom, like the main app. */
-@media (max-width: 639px) {
-  .top {
-    -webkit-flex-direction: column-reverse; flex-direction: column-reverse;
-    -webkit-align-items: flex-start; align-items: flex-start;
-  }
-  .top .status { margin-bottom: 12px; text-align: left; }
+  margin-bottom: 18px;
 }
 
 .eyebrow {
   margin: 0;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 500;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -103,24 +95,24 @@ body {
 
 .clock {
   display: block;
-  font-size: 56px;
+  font-size: 76px;
   font-weight: 600;
   line-height: 1.05;
   font-variant-numeric: tabular-nums;
 }
 
 /* South (from Oslo S): coloured band on top. */
-.page { border-top: 8px solid transparent; }
+.page { border-top: 10px solid transparent; }
 .dir-south { border-top-color: var(--south); }
 
-.legend { list-style: none; margin: 8px 0 0; padding: 0; font-size: 13px; font-weight: 500; color: var(--muted); }
-.legend li { display: inline-block; margin-right: 16px; }
-.swatch { display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.legend { list-style: none; margin: 8px 0 0; padding: 0; font-size: 16px; font-weight: 500; color: var(--muted); }
+.legend li { display: inline-block; margin-right: 18px; }
+.swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; margin-right: 7px; vertical-align: -1px; }
 
-.status { text-align: right; font-size: 15px; color: var(--muted); }
+.status { text-align: right; font-size: 18px; color: var(--muted); }
 .status p { margin: 0; }
-.status .small { margin-top: 4px; font-size: 12px; color: var(--subtle); }
-.status .error { font-weight: 500; color: var(--danger); }
+.status .small { margin-top: 4px; font-size: 14px; color: var(--subtle); }
+.status .error { font-weight: 600; color: var(--danger); }
 
 .boards {
   display: -webkit-flex; display: flex;
@@ -134,17 +126,7 @@ body {
   min-width: 0;
 }
 
-.boards-two .board + .board { margin-top: 28px; }
-
-/* Same breakpoint as the two-col variant in src/app/globals.css. */
-@media (min-width: 740px), (orientation: landscape) and (min-width: 560px) {
-  .boards-two {
-    -webkit-flex-direction: row; flex-direction: row;
-    -webkit-align-items: flex-start; align-items: flex-start;
-  }
-  .boards-two .board { -webkit-flex: 1 1 0%; flex: 1 1 0%; }
-  .boards-two .board + .board { margin-top: 0; margin-left: 32px; }
-}
+.boards-two .board + .board { margin-top: 22px; }
 
 .board-head {
   display: -webkit-flex; display: flex;
@@ -155,43 +137,43 @@ body {
   margin-bottom: 12px;
 }
 
-.board-head h2 { margin: 0 16px 0 0; font-size: 24px; font-weight: 600; letter-spacing: -0.01em; }
+.board-head h2 { margin: 0 18px 0 0; font-size: 36px; font-weight: 600; letter-spacing: -0.01em; }
 .trip { margin: 0; color: var(--muted); }
-.trip strong { margin-right: 8px; font-size: 24px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--foreground); }
-.trip span { font-size: 13px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--subtle); }
+.trip strong { margin-right: 10px; font-size: 32px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--foreground); }
+.trip span { font-size: 16px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--subtle); }
 
 .avvik {
   -webkit-flex-shrink: 0; flex-shrink: 0;
-  margin-bottom: 8px;
-  padding: 8px 12px;
+  margin-bottom: 10px;
+  padding: 10px 14px;
   border: 1px solid var(--avvik-border);
-  border-radius: 8px;
+  border-radius: 10px;
   background: var(--warn-bg);
   color: var(--avvik-text);
 }
-.avvik .label { margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--avvik-label); }
-.avvik .summary { margin: 2px 0 0; font-size: 17px; font-weight: 500; }
-.avvik .description { margin: 4px 0 0; font-size: 14px; opacity: 0.8; }
+.avvik .label { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--avvik-label); }
+.avvik .summary { margin: 2px 0 0; font-size: 22px; font-weight: 500; }
+.avvik .description { margin: 4px 0 0; font-size: 17px; opacity: 0.8; }
 
 .day {
   display: -webkit-flex; display: flex;
   -webkit-align-items: center; align-items: center;
-  margin: 10px 0 8px;
+  margin: 6px 0 10px;
 }
 .day .rule { -webkit-flex: 1 1 auto; flex: 1 1 auto; min-width: 16px; height: 1px; background: var(--line); }
-.day .label { padding: 0 12px; text-align: center; }
-.day .title { display: block; font-size: 14px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
-.day .sub { display: block; margin-top: 2px; font-size: 12px; color: var(--subtle); }
+.day .label { padding: 0 14px; text-align: center; }
+.day .title { display: block; font-size: 18px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
+.day .sub { display: block; margin-top: 2px; font-size: 15px; color: var(--subtle); }
 
 .deps { list-style: none; margin: 0; padding: 0; }
 
 .dep {
   display: -webkit-flex; display: flex;
   -webkit-align-items: center; align-items: center;
-  margin-bottom: 8px;
-  padding: 10px 14px;
-  border-left: 4px solid var(--line);
-  border-radius: 8px;
+  margin-bottom: 10px;
+  padding: 14px 18px;
+  border-left: 6px solid var(--line);
+  border-radius: 12px;
   background: var(--surface);
 }
 .dep.is-delayed { background: var(--warn-bg); box-shadow: 0 0 0 1px var(--warn-ring); }
@@ -202,78 +184,102 @@ body {
 
 .badge {
   -webkit-flex-shrink: 0; flex-shrink: 0;
-  min-width: 52px;
-  margin-right: 14px;
-  padding: 4px 8px;
-  border-radius: 6px;
+  min-width: 84px;
+  margin-right: 20px;
+  padding: 6px 12px;
+  border-radius: 8px;
   text-align: center;
-  font-size: 19px;
+  font-size: 30px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 .badge.cancelled { background: #b91c1c; color: #fff; }
 .badge.replacement { background: #f59e0b; color: #09090b; }
 
-.time { -webkit-flex-shrink: 0; flex-shrink: 0; width: 72px; margin-right: 14px; line-height: 1.15; }
-.time .now { display: block; font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.time { -webkit-flex-shrink: 0; flex-shrink: 0; width: 124px; margin-right: 20px; line-height: 1.1; }
+.time .now { display: block; font-size: 42px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .time .now.late { color: var(--warn-text); }
 .time .now.cancelled { color: var(--danger); text-decoration: line-through; }
-.time .countdown { display: block; font-size: 13px; font-weight: 500; color: var(--muted); font-variant-numeric: tabular-nums; }
+.time .countdown { display: block; margin-top: 2px; font-size: 19px; font-weight: 500; color: var(--muted); font-variant-numeric: tabular-nums; }
 .time .countdown:empty { display: none; }
-.time .was { display: block; font-size: 13px; color: var(--subtle); text-decoration: line-through; font-variant-numeric: tabular-nums; }
+.time .was { display: block; font-size: 19px; color: var(--subtle); text-decoration: line-through; font-variant-numeric: tabular-nums; }
 
 .info { -webkit-flex: 1 1 auto; flex: 1 1 auto; min-width: 0; }
-.dest { margin: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 19px; font-weight: 500; }
+.dest { margin: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 30px; font-weight: 500; }
 .dest.cancelled { color: var(--danger); text-decoration: line-through; }
-.arrival { margin: 1px 0 0; font-size: 15px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.arrival { margin: 2px 0 0; font-size: 21px; color: var(--muted); font-variant-numeric: tabular-nums; }
 
-.tags { margin-top: 3px; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
-.tag { display: inline-block; margin-right: 6px; padding: 1px 6px; border-radius: 4px; }
-.tag.cancelled { white-space: nowrap; }
+.tags { margin-top: 4px; font-size: 18px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.tag { display: inline-block; margin-right: 8px; padding: 2px 9px; border-radius: 6px; white-space: nowrap; }
 .tag.cancelled { background: #dc2626; color: #fff; }
 .tag.replacement { background: #fbbf24; color: #09090b; }
-.tag.leave { background: #059669; color: #fff; white-space: nowrap; }
+.tag.leave { background: #059669; color: #fff; }
 .dark .tag.leave { background: #10b981; color: #09090b; }
 .tag.leave:empty { display: none; }
 .tag.delayed { background: #facc15; color: #09090b; }
 
-.note { margin: 4px 0 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 14px; color: var(--note); }
-
-.platform { -webkit-flex-shrink: 0; flex-shrink: 0; margin-left: 14px; text-align: right; color: var(--muted); }
-.platform small { display: block; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; }
-.platform strong { font-size: 20px; font-weight: 600; color: var(--foreground); }
+.platform { -webkit-flex-shrink: 0; flex-shrink: 0; margin-left: 18px; text-align: right; color: var(--muted); }
+.platform small { display: block; font-size: 15px; letter-spacing: 0.1em; text-transform: uppercase; }
+.platform strong { font-size: 36px; font-weight: 600; color: var(--foreground); }
 
 .stale {
-  margin: 0 0 16px;
-  padding: 12px 16px;
-  border-radius: 8px;
+  margin: 0 0 18px;
+  padding: 14px 18px;
+  border-radius: 10px;
   background: #dc2626;
   color: #fff;
-  font-size: 17px;
+  font-size: 22px;
   font-weight: 600;
 }
 .stale:empty { display: none; }
 
-.empty, .error-box { margin: 0; padding: 20px 16px; border-radius: 8px; font-size: 18px; }
+.empty, .error-box { margin: 0; padding: 22px 18px; border-radius: 10px; font-size: 24px; }
 .empty { background: var(--surface); color: var(--muted); }
 .error-box { background: var(--danger-bg); color: var(--danger); }
 
 /* At the bottom of the page, after the last train (not pinned to the screen). */
 .bottom {
   -webkit-flex-shrink: 0; flex-shrink: 0;
-  margin-top: 10px;
-  padding: 8px 0 10px;
+  margin-top: 8px;
+  padding: 8px 0 12px;
   border-top: 1px solid var(--line);
-  font-size: 14px;
+  font-size: 18px;
 }
 .bottom .group { display: inline-block; margin-right: 24px; }
 .bottom a {
   display: inline-block;
-  padding: 6px 10px;
-  border-radius: 6px;
+  padding: 8px 12px;
+  border-radius: 8px;
   color: var(--subtle);
   text-decoration: none;
 }
 .bottom a.active { background: var(--toggle-active); color: var(--toggle-active-fg); }
 .bottom a.active.south { background: var(--south); color: var(--south-fg); }
+
+/* Phone-width screens: stack the header with the clock last, and use smaller sizes. */
+@media (max-width: 599px) {
+  .page { padding: 14px 16px 0; }
+  .top {
+    -webkit-flex-direction: column-reverse; flex-direction: column-reverse;
+    -webkit-align-items: flex-start; align-items: flex-start;
+  }
+  .top .status { margin-bottom: 10px; text-align: left; font-size: 15px; }
+  .clock { font-size: 56px; }
+  .board-head h2 { font-size: 26px; }
+  .trip strong { font-size: 24px; }
+  .trip span { font-size: 13px; }
+  .dep { padding: 10px 12px; border-left-width: 4px; }
+  .badge { min-width: 52px; margin-right: 12px; padding: 4px 8px; font-size: 19px; }
+  .time { width: 76px; margin-right: 12px; }
+  .time .now { font-size: 24px; }
+  .time .countdown, .time .was { font-size: 13px; }
+  .dest { font-size: 19px; }
+  .arrival { font-size: 15px; }
+  .tags { font-size: 12px; }
+  .tag { padding: 1px 6px; }
+  .platform { margin-left: 12px; }
+  .platform small { font-size: 11px; }
+  .platform strong { font-size: 22px; }
+  .bottom { font-size: 15px; }
+}
 `;

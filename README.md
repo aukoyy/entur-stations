@@ -36,9 +36,9 @@ The main app needs Safari 16.4+ (Next.js 16, React 19, Tailwind 4), so on older 
 
 - Plain server-rendered HTML with hand-written CSS and a small ES5 script, without React, Tailwind or Next.js client JavaScript
 - Polls `/tavle?…&format=json` every 30 seconds and swaps in the new board; if a poll fails, the last board stays on screen
-- The whole page scrolls. Narrow screens stack the stations; from 740px wide, or landscape from 560px (same rule as the main app), they sit side by side
+- Made to be read from a few metres away: one column with large rows (Begge stacks Kråkstad above Ski), and only as many trains as fit on the screen without scrolling, shared between the stations (at least one each). It refits as trains leave and when the screen rotates
+- Per-train notes (e.g. *Færre spor: Oslo S*) are left out to keep rows readable; the tags (Innstilt, Forsinket, Buss for tog, Kjør/Gå om) and the station-level Avvik box stay
 - The station/theme links sit at the bottom of the page, after the last train
-- Scroll position is kept across polls
 - Same countdown, leave hints, fading and Utdatert warning as the main app; the page script updates them every 10 seconds, also when offline
 - Reloads the full page every 6 hours (only right after a successful poll) to pick up new deploys; this also scrolls back to the top
 - Same `retning`, `stasjon` and `tema` params as above; small links in the footer switch between them. No location lookup here: without `retning` it's Nord
